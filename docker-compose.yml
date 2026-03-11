@@ -1,0 +1,70 @@
+# ================================================================
+# docker-compose.yml — PRODUCTION
+# Chạy: docker compose up -d
+# ================================================================
+
+services:
+  # ─────────────────────────────────────────
+  # PostgreSQL Database
+  # ─────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: sports_booking_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: sports-booking
+    ports:
+      - "5432:5432"
+    volumes:
+      # Dữ liệu được lưu vào volume Docker (không mất khi restart container)
+      - postgres_data:/var/lib/postgresql/data
+      # Script khởi tạo DB lần đầu
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d sports-booking"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────
+  # Backend (Next.js API Server)
+  # ─────────────────────────────────────────
+  backend:
+    build:
+      context: ./server/backend
+      dockerfile: ../../docker/server.Dockerfile
+    container_name: sports_booking_backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/sports-booking?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy   # Chờ DB sẵn sàng mới start backend
+
+  # ─────────────────────────────────────────
+  # Frontend (Client)
+  # ─────────────────────────────────────────
+  frontend:
+    build:
+      context: ./client/frontend
+      dockerfile: ../../docker/client.Dockerfile
+    container_name: sports_booking_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      NODE_ENV: production
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+    driver: local
