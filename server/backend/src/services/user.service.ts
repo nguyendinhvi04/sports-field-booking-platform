@@ -20,12 +20,21 @@ export async function updateMyProfile(userId: string, input: UpdateProfileInput)
   }
 
   // Tách riêng dữ liệu update cho bảng user và bảng user_profile
-  const userUpdateData: any = {};
+  const userUpdateData: {
+    fullName?: string;
+    phone?: string | null;
+    avatarUrl?: string | null;
+  } = {};
   if (input.fullName !== undefined) userUpdateData.fullName = input.fullName;
   if (input.phone !== undefined) userUpdateData.phone = input.phone || null;
   if (input.avatarUrl !== undefined) userUpdateData.avatarUrl = input.avatarUrl || null;
 
-  const profileUpdateData: any = {};
+  const profileUpdateData: {
+    address?: string;
+    gender?: string;
+    bio?: string;
+    dateOfBirth?: Date | null;
+  } = {};
   if (input.address !== undefined) profileUpdateData.address = input.address;
   if (input.gender !== undefined) profileUpdateData.gender = input.gender;
   if (input.bio !== undefined) profileUpdateData.bio = input.bio;
