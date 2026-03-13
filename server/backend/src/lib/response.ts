@@ -45,6 +45,9 @@ export function errorResponse(
  */
 export function serverErrorResponse(error: unknown): NextResponse<ErrorResponse> {
   console.error("[SERVER_ERROR]", error);
+  if (error instanceof Error) {
+    console.error("Stack trace:", error.stack);
+  }
   return NextResponse.json(
     { success: false, message: "Lỗi máy chủ nội bộ. Vui lòng thử lại sau." },
     { status: 500 }

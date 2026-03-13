@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { CreateBookingInput } from "@/validations/booking.schema";
+import type { ManualBookingInput } from "@/validations/manual-booking.schema";
+import { updateClubCustomerStats } from "./club-customer.service";
 
 // ============================================================
 // BOOKING SERVICE
@@ -153,6 +155,126 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
   });
 
   return booking;
+}
+
+/**
+ * Chủ sân đặt sân thủ công cho khách (offline)
+ */
+export async function createManualBooking(ownerId: string, clubId: string, input: ManualBookingInput) {
+  // 1. Kiểm tra quyền sở hữu CLB
+  const club = await prisma.club.findFirst({
+    where: { id: clubId, ownerId },
+  });
+  if (!club) throw new Error("CLUB_NOT_FOUND_OR_UNAUTHORIZED");
+
+  // 2. Tìm hoặc tạo user theo số điện thoại (Guest)
+  let user = await prisma.user.findFirst({
+    where: { phone: input.bookerPhone },
+  });
+
+  if (!user) {
+    // Tạo user "vãng lai" nếu chưa tồn tại
+    user = await prisma.user.create({
+      data: {
+        fullName: input.bookerName,
+        phone: input.bookerPhone,
+        email: input.bookerEmail || `guest_${Date.now()}@sportplatform.com`, // Email giả định nếu không có
+        role: "USER",
+        isActive: true,
+      },
+    });
+  }
+
+  // 3. Lấy thông tin sân và tính giá (giống createBooking nhưng bỏ qua voucher)
+  const slots = await prisma.timeSlot.findMany({
+    where: {
+      id: { in: input.timeSlotIds },
+      courtId: input.courtId,
+    },
+  });
+
+  if (slots.length !== input.timeSlotIds.length) throw new Error("SLOT_NOT_FOUND");
+  if (slots.some((s) => s.status !== "AVAILABLE")) throw new Error("SLOT_NOT_AVAILABLE");
+
+  const court = await prisma.court.findUnique({
+    where: { id: input.courtId },
+    include: { pricings: { where: { isActive: true } } },
+  });
+  if (!court) throw new Error("COURT_NOT_FOUND");
+
+  let totalAmount = 0;
+  const slotPrices: { slotId: string; price: number }[] = [];
+
+  for (const slot of slots) {
+    const slotHour = slot.startTime.getHours();
+    const slotDow = slot.startTime.getDay();
+    const pricing = court.pricings.find((p) => {
+      const pStart = p.startTime.getHours();
+      const pEnd = p.endTime.getHours();
+      const pDow = p.dayOfWeek;
+      return slotHour >= pStart && slotHour < pEnd && (pDow === null || pDow === slotDow);
+    });
+    const price = pricing ? Number(pricing.pricePerHour) : 0;
+    totalAmount += price;
+    slotPrices.push({ slotId: slot.id, price });
+  }
+
+  try {
+    // 4. Thực hiện transaction
+    const booking = await prisma.$transaction(async (tx) => {
+      // Lock slots
+      await tx.timeSlot.updateMany({
+        where: { id: { in: input.timeSlotIds } },
+        data: { status: "BOOKED" },
+      });
+
+      // Tạo booking với trạng thái COMPLETED nếu đã trả tiền
+      const newBooking = await tx.booking.create({
+        data: {
+          userId: user!.id,
+          courtId: input.courtId,
+          status: input.isPaid ? "COMPLETED" : "CONFIRMED",
+          totalAmount,
+          discountAmount: 0,
+          finalAmount: totalAmount,
+          bookerName: input.bookerName,
+          bookerPhone: input.bookerPhone,
+          bookerEmail: input.bookerEmail,
+          note: input.note,
+          items: {
+            create: slotPrices.map((sp) => ({
+              timeSlotId: sp.slotId,
+              price: sp.price,
+            })),
+          },
+          payment: {
+            create: {
+              method: "CASH",
+              status: input.isPaid ? "CONFIRMED" : "PENDING",
+              amount: totalAmount,
+              paidAt: input.isPaid ? new Date() : null,
+            },
+          },
+        },
+        include: {
+          items: { include: { timeSlot: true } },
+          payment: true,
+        },
+      });
+
+      return newBooking;
+    });
+
+    // 5. Cập nhật thống kê khách hàng nếu là COMPLETED
+    if (input.isPaid) {
+      await updateClubCustomerStats(clubId, user.id, totalAmount);
+    }
+
+    return booking;
+  } catch (error) {
+    console.error("Error in createManualBooking:", error);
+    throw error;
+  }
 }
 
 /**
