@@ -125,20 +125,20 @@ enum CustomerTier {
 // ============================================================
 
 model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
-  phone            String?   @unique
-  passwordHash     String?
-  fullName         String
-  avatarUrl        String?
-  role             Role      @default(USER)
-  isActive         Boolean   @default(true)
-  isEmailVerified  Boolean   @default(false)
-  googleId         String?   @unique
-  facebookId       String?   @unique
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  lastLoginAt      DateTime?
+  id              String    @id @default(cuid())
+  email           String    @unique
+  phone           String?   @unique
+  passwordHash    String?
+  fullName        String
+  avatarUrl       String?
+  role            Role      @default(USER)
+  isActive        Boolean   @default(true)
+  isEmailVerified Boolean   @default(false)
+  googleId        String?   @unique
+  facebookId      String?   @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastLoginAt     DateTime?
 
   profile          UserProfile?
   sessions         Session[]
@@ -149,6 +149,7 @@ model User {
   voucherUsages    VoucherUsage[]
   ownedClubs       Club[]
   passwordResets   PasswordReset[]
+  customerProfiles ClubCustomer[]
 
   @@map("users")
 }
@@ -162,7 +163,7 @@ model UserProfile {
   bio         String?
   updatedAt   DateTime  @updatedAt
 
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_profiles")
 }
@@ -176,7 +177,7 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
@@ -189,7 +190,7 @@ model PasswordReset {
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_resets")
 }
@@ -220,14 +221,14 @@ model Club {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  owner          User           @relation(fields: [ownerId], references: [id])
-  courts         Court[]
-  images         ClubImage[]
-  openingHours   OpeningHour[]
-  amenities      ClubAmenity[]
-  posts          Post[]
-  vouchers       Voucher[]
-  customers      ClubCustomer[]
+  owner        User           @relation(fields: [ownerId], references: [id])
+  courts       Court[]
+  images       ClubImage[]
+  openingHours OpeningHour[]
+  amenities    ClubAmenity[]
+  posts        Post[]
+  vouchers     Voucher[]
+  customers    ClubCustomer[]
 
   @@map("clubs")
 }
@@ -240,7 +241,7 @@ model ClubImage {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
 
-  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@map("club_images")
 }
@@ -250,16 +251,16 @@ model ClubImage {
 // ============================================================
 
 model OpeningHour {
-  id         String   @id @default(cuid())
-  clubId     String
-  dayOfWeek  Int      // 0=CN, 1=T2, 2=T3, 3=T4, 4=T5, 5=T6, 6=T7
-  openTime   DateTime @db.Time // Giờ mở cửa, VD: 06:00:00
-  closeTime  DateTime @db.Time // Giờ đóng cửa, VD: 23:00:00
-  isClosed   Boolean  @default(false) // true = nghỉ nguyên ngày đó
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  clubId    String
+  dayOfWeek Int // 0=CN, 1=T2, 2=T3, 3=T4, 4=T5, 5=T6, 6=T7
+  openTime  DateTime @db.Time // Giờ mở cửa, VD: 06:00:00
+  closeTime DateTime @db.Time // Giờ đóng cửa, VD: 23:00:00
+  isClosed  Boolean  @default(false) // true = nghỉ nguyên ngày đó
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  club       Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@unique([clubId, dayOfWeek])
   @@map("opening_hours")
@@ -270,12 +271,12 @@ model OpeningHour {
 // ============================================================
 
 model Amenity {
-  id        String        @id @default(cuid())
-  name      String        @unique // "WiFi", "Canteen", "Parking", "Shower", "Locker"...
-  icon      String?       // Tên icon (VD: "wifi", "utensils", "car")
-  createdAt DateTime      @default(now())
+  id        String   @id @default(cuid())
+  name      String   @unique // "WiFi", "Canteen", "Parking", "Shower", "Locker"...
+  icon      String? // Tên icon (VD: "wifi", "utensils", "car")
+  createdAt DateTime @default(now())
 
-  clubs     ClubAmenity[]
+  clubs ClubAmenity[]
 
   @@map("amenities")
 }
@@ -284,11 +285,11 @@ model ClubAmenity {
   id        String   @id @default(cuid())
   clubId    String
   amenityId String
-  note      String?  // Ghi chú thêm: "WiFi miễn phí", "Canteen tầng 1"...
+  note      String? // Ghi chú thêm: "WiFi miễn phí", "Canteen tầng 1"...
   createdAt DateTime @default(now())
 
-  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  amenity   Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  club    Club    @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  amenity Amenity @relation(fields: [amenityId], references: [id], onDelete: Cascade)
 
   @@unique([clubId, amenityId])
   @@map("club_amenities")
@@ -306,18 +307,18 @@ model Court {
   sportType     SportType
   status        CourtStatus @default(ACTIVE)
   capacity      Int?
-  surface       String?     // "Cỏ nhân tạo", "Sàn gỗ", "Bê tông"...
-  indoorOutdoor String?     // "INDOOR" / "OUTDOOR"
+  surface       String? // "Cỏ nhân tạo", "Sàn gỗ", "Bê tông"...
+  indoorOutdoor String? // "INDOOR" / "OUTDOOR"
   sortOrder     Int         @default(0)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  club          Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  images        CourtImage[]
-  pricings      CourtPricing[]
-  timeSlots     TimeSlot[]
-  bookings      Booking[]
-  favoredBy     FavoriteCourt[]
+  club      Club            @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  images    CourtImage[]
+  pricings  CourtPricing[]
+  timeSlots TimeSlot[]
+  bookings  Booking[]
+  favoredBy FavoriteCourt[]
 
   @@map("courts")
 }
@@ -330,7 +331,7 @@ model CourtImage {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
 
-  court     Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
 
   @@map("court_images")
 }
@@ -338,16 +339,16 @@ model CourtImage {
 model CourtPricing {
   id           String   @id @default(cuid())
   courtId      String
-  dayOfWeek    Int?     // 0=CN...6=T7. null = áp dụng mọi ngày
+  dayOfWeek    Int? // 0=CN...6=T7. null = áp dụng mọi ngày
   startTime    DateTime @db.Time // VD: 06:00:00
   endTime      DateTime @db.Time // VD: 12:00:00
   pricePerHour Decimal  @db.Decimal(12, 2)
-  label        String?  // "Giờ sáng", "Giờ vàng", "Cuối tuần"...
+  label        String? // "Giờ sáng", "Giờ vàng", "Cuối tuần"...
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  court        Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
 
   @@map("court_pricings")
 }
@@ -357,18 +358,18 @@ model CourtPricing {
 // ============================================================
 
 model TimeSlot {
-  id           String         @id @default(cuid())
-  courtId      String
-  startTime    DateTime       // Full DateTime: "2026-03-15T08:00:00"
-  endTime      DateTime       // Full DateTime: "2026-03-15T09:00:00"
-  status       TimeSlotStatus @default(AVAILABLE)
-  lockedBy     String?        // userId đang giữ slot tạm thời
-  lockedAt     DateTime?
-  note         String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id        String         @id @default(cuid())
+  courtId   String
+  startTime DateTime // Full DateTime: "2026-03-15T08:00:00"
+  endTime   DateTime // Full DateTime: "2026-03-15T09:00:00"
+  status    TimeSlotStatus @default(AVAILABLE)
+  lockedBy  String? // userId đang giữ slot tạm thời
+  lockedAt  DateTime?
+  note      String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
-  court        Court          @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  court        Court         @relation(fields: [courtId], references: [id], onDelete: Cascade)
   bookingItems BookingItem[]
 
   @@unique([courtId, startTime])
@@ -382,7 +383,7 @@ model Booking {
   bookingCode    String        @unique @default(cuid())
   status         BookingStatus @default(PENDING)
   totalAmount    Decimal       @db.Decimal(12, 2)
-  discountAmount Decimal       @db.Decimal(12, 2) @default(0)
+  discountAmount Decimal       @default(0) @db.Decimal(12, 2)
   finalAmount    Decimal       @db.Decimal(12, 2)
   note           String?
   voucherId      String?
@@ -393,13 +394,13 @@ model Booking {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  user           User          @relation(fields: [userId], references: [id])
-  court          Court         @relation(fields: [courtId], references: [id])
-  voucher        Voucher?      @relation(fields: [voucherId], references: [id])
-  items          BookingItem[]
-  payment        Payment?
-  review         Review?
-  notifications  Notification[]
+  user          User           @relation(fields: [userId], references: [id])
+  court         Court          @relation(fields: [courtId], references: [id])
+  voucher       Voucher?       @relation(fields: [voucherId], references: [id])
+  items         BookingItem[]
+  payment       Payment?
+  review        Review?
+  notifications Notification[]
 
   @@map("bookings")
 }
@@ -411,8 +412,8 @@ model BookingItem {
   price      Decimal  @db.Decimal(12, 2)
   createdAt  DateTime @default(now())
 
-  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  timeSlot   TimeSlot @relation(fields: [timeSlotId], references: [id])
+  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  timeSlot TimeSlot @relation(fields: [timeSlotId], references: [id])
 
   @@unique([bookingId, timeSlotId])
   @@map("booking_items")
@@ -423,12 +424,12 @@ model BookingItem {
 // ============================================================
 
 model Payment {
-  id              String       @id @default(cuid())
-  bookingId       String       @unique
+  id              String        @id @default(cuid())
+  bookingId       String        @unique
   method          PaymentMethod
   status          PaymentStatus @default(PENDING)
-  amount          Decimal      @db.Decimal(12, 2)
-  transactionRef  String?      @unique
+  amount          Decimal       @db.Decimal(12, 2)
+  transactionRef  String?       @unique
   bankName        String?
   accountNumber   String?
   transferContent String?
@@ -440,18 +441,18 @@ model Payment {
   // Chính sách hoàn tiền
   refundStatus    RefundStatus @default(NONE)
   refundAmount    Decimal?     @db.Decimal(12, 2) // Số tiền được hoàn lại
-  refundReason    String?      // Lý do yêu cầu hoàn tiền
-  refundRequestAt DateTime?    // Thời điểm user gửi yêu cầu
-  refundReviewAt  DateTime?    // Thời điểm owner/admin xét duyệt
-  refundReviewBy  String?      // ID người xét duyệt
-  refundNote      String?      // Ghi chú của người xét duyệt
-  refundedAt      DateTime?    // Thời điểm hoàn tiền thực tế
+  refundReason    String? // Lý do yêu cầu hoàn tiền
+  refundRequestAt DateTime? // Thời điểm user gửi yêu cầu
+  refundReviewAt  DateTime? // Thời điểm owner/admin xét duyệt
+  refundReviewBy  String? // ID người xét duyệt
+  refundNote      String? // Ghi chú của người xét duyệt
+  refundedAt      DateTime? // Thời điểm hoàn tiền thực tế
 
-  note            String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  booking         Booking      @relation(fields: [bookingId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
 
   @@map("payments")
 }
@@ -461,20 +462,20 @@ model Payment {
 // ============================================================
 
 model Review {
-  id        String        @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
-  bookingId String        @unique
+  bookingId String   @unique
   courtId   String?
   clubId    String?
-  rating    Int           // 1–5
+  rating    Int // 1–5
   comment   String?
-  isVisible Boolean       @default(true)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user      User          @relation(fields: [userId], references: [id])
-  booking   Booking       @relation(fields: [bookingId], references: [id])
-  images    ReviewImage[]
+  user    User          @relation(fields: [userId], references: [id])
+  booking Booking       @relation(fields: [bookingId], references: [id])
+  images  ReviewImage[]
 
   @@map("reviews")
 }
@@ -486,7 +487,7 @@ model ReviewImage {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
 
-  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
   @@map("review_images")
 }
@@ -496,27 +497,27 @@ model ReviewImage {
 // ============================================================
 
 model Voucher {
-  id             String       @id @default(cuid())
-  clubId         String?      // null = toàn hệ thống (admin tạo)
-  code           String       @unique
+  id             String      @id @default(cuid())
+  clubId         String? // null = toàn hệ thống (admin tạo)
+  code           String      @unique
   title          String
   description    String?
   type           VoucherType
-  value          Decimal      @db.Decimal(12, 2)
-  minOrderAmount Decimal?     @db.Decimal(12, 2)
-  maxDiscount    Decimal?     @db.Decimal(12, 2)
+  value          Decimal     @db.Decimal(12, 2)
+  minOrderAmount Decimal?    @db.Decimal(12, 2)
+  maxDiscount    Decimal?    @db.Decimal(12, 2)
   usageLimit     Int?
-  usagePerUser   Int          @default(1)
-  usedCount      Int          @default(0)
+  usagePerUser   Int         @default(1)
+  usedCount      Int         @default(0)
   startDate      DateTime
   endDate        DateTime
-  isActive       Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
-  club           Club?        @relation(fields: [clubId], references: [id])
-  usages         VoucherUsage[]
-  bookings       Booking[]
+  club     Club?          @relation(fields: [clubId], references: [id])
+  usages   VoucherUsage[]
+  bookings Booking[]
 
   @@map("vouchers")
 }
@@ -527,8 +528,8 @@ model VoucherUsage {
   userId    String
   usedAt    DateTime @default(now())
 
-  voucher   Voucher  @relation(fields: [voucherId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  voucher Voucher @relation(fields: [voucherId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
 
   @@unique([voucherId, userId])
   @@map("voucher_usages")
@@ -544,8 +545,8 @@ model FavoriteCourt {
   courtId   String
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  court     Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courtId])
   @@map("favorite_courts")
@@ -566,8 +567,8 @@ model Notification {
   readAt    DateTime?
   createdAt DateTime         @default(now())
 
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  booking   Booking?         @relation(fields: [bookingId], references: [id])
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking Booking? @relation(fields: [bookingId], references: [id])
 
   @@map("notifications")
 }
@@ -591,7 +592,7 @@ model Post {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  club          Club       @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@map("posts")
 }
@@ -607,12 +608,13 @@ model ClubCustomer {
   tier          CustomerTier @default(NORMAL)
   totalBookings Int          @default(0)
   totalCancels  Int          @default(0)
-  totalSpent    Decimal      @db.Decimal(14, 2) @default(0)
+  totalSpent    Decimal      @default(0) @db.Decimal(14, 2)
   notes         String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  club          Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([clubId, userId])
   @@map("club_customers")
