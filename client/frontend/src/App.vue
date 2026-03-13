@@ -1,14 +1,18 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <div class="container mt-5">
-    <h1 class="text-primary">Sports Field Booking</h1>
-
-    <button class="btn btn-success">
-      Book Field
-    </button>
-  </div>
+  <component :is="layout">
+      <router-view></router-view>
+  </component>
 </template>
+
+<script>
+const default_layout = "default";
+export default {
+  computed: {
+    layout() {
+      return (this.$route.meta.layout || default_layout) + "-layout";
+    },
+  },
+};
+</script>
+<style>
+</style>
