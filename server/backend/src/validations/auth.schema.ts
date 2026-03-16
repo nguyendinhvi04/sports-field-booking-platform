@@ -22,6 +22,11 @@ export const registerSchema = z.object({
     .string()
     .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
     .max(100, "Mật khẩu không được quá 100 ký tự"),
+
+  role: z.enum(["USER", "OWNER"])
+    .optional()
+    .default("USER"),
+
 });
 
 export const loginSchema = z.object({
@@ -64,3 +69,5 @@ export const resetPasswordSchema = z
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

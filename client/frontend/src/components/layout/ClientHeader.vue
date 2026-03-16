@@ -29,23 +29,34 @@
     </div>
 
     <div class="navbar-right">
-      <router-link to="/client/login" class="nav-link">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <rect x="3" y="4" width="18" height="18" rx="2" />
-          <path d="M16 2v4M8 2v4M3 10h18" />
-        </svg>
-        QUẢN LÝ ĐẶT CHỖ
+      <!-- Kiểm tra đăng nhập -->
+      <template v-if="user">
+        <span class="welcome-text">Chào, {{ user.fullName }}</span>
+        <router-link to="/booking" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <path d="M16 2v4M8 2v4M3 10h18" />
+          </svg>
+          QUẢN LÝ ĐẶT CHỖ
+        </router-link>
+        <button @click="handleLogout" class="nav-link btn-logout">
+          ĐĂNG XUẤT
+        </button>
+      </template>
+
+      <template v-else>
+        <router-link to="/client/login" class="nav-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <path d="M16 2v4M8 2v4M3 10h18" />
+          </svg>
+          ĐĂNG NHẬP
+        </router-link>
+      </template>
+
+      <router-link to="/owner" class="nav-link nav-link--cta">
+        LIỆT KÊ ĐỊA ĐIỂM CỦA BẠN
       </router-link>
-      <router-link to="/owner" class="nav-link nav-link--cta"
-        >LIỆT KÊ ĐỊA ĐIỂM CỦA BẠN</router-link
-      >
     </div>
   </nav>
 </template>
@@ -53,6 +64,20 @@
 <script>
 export default {
   name: "ClientHeader",
+  computed: {
+    user() {
+      const userData = localStorage.getItem("user");
+      return userData ? JSON.parse(userData) : null;
+    }
+  },
+  methods: {
+    handleLogout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      // Load lại trang để reset trạng thái
+      window.location.href = "/";
+    }
+  }
 };
 </script>
 
@@ -167,6 +192,26 @@ export default {
 
 .nav-link--cta:hover {
   background: #15803d;
+}
+
+.welcome-text {
+  color: #4ade80;
+  font-weight: 700;
+  font-size: 13px;
+  margin-right: 12px;
+}
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  color: #ff4d4f;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 77, 79, 0.1);
+  border-color: #ff4d4f;
+  color: #ff4d4f;
 }
 
 @media (max-width: 768px) {
