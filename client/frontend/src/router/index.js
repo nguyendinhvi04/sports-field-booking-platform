@@ -4,7 +4,8 @@ const routes = [
   // Page Client
   {
     path: "/",
-    component: () => import("../components/Client/Home/index.vue"),
+    name: "home",
+    component: () => import("../views/client/HomeView.vue"),
   },
 
   // Auth Group
