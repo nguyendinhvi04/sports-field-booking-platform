@@ -21,7 +21,7 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent1">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0"></ul>
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <router-link to="/home">
+          <router-link to="/">
             <li class="nav-item">
               <a class="nav-link text-light fs-6" aria-current="page" href="#"
                 >Trang Chủ</a
