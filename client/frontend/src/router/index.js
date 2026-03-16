@@ -1,33 +1,53 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
-  // Route cho trang client
+  // Page Client
   {
     path: "/home",
     component: () => import("../components/Client/Home/index.vue"),
   },
+
+  // Auth Group
   {
     path: "/client/login",
-    component: () => import("../components/Client/Login/index.vue"),
+    name: "login",
+    component: () => import("../views/auth/LoginView.vue"),
     meta: { layout: "nocore" },
   },
   {
     path: "/client/register",
-    component: () => import("../components/Client/Register/index.vue"),
+    name: "register",
+    component: () => import("../views/auth/RegisterView.vue"),
     meta: { layout: "nocore" },
   },
-   {
+  {
     path: "/client/forgot-password",
-    component: () => import("../components/Client/Forgot-Password/index.vue"),
+    name: "forgot-password",
+    component: () => import("../views/auth/ForgotPasswordView.vue"),
     meta: { layout: "nocore" },
   },
-  // Route cho trang admin
+
+  // Page Admin
   {
     path: "/admin",
-    component: () => import("../components/Admin/Home/index.vue"),
+    name: "admin-home",
+    component: () => import("../views/admin/HomeView.vue"),
     meta: { layout: "admin" },
   },
-  // Thêm các route khác
+
+  // Page Owner
+  {
+    path: "/owner",
+    name: "owner-home",
+    component: () => import("../views/owner/HomeView.vue"),
+    meta: { layout: "owner" },
+  },
+  {
+    path: "/dashboard/owner",
+    name: "owner-dashboard",
+    component: () => import("../views/owner/DashboardView.vue"),
+    meta: { layout: "owner" },
+  },
 ];
 
 const router = createRouter({
