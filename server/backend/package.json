@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@mapbox/mapbox-sdk": "^0.16.2",
     "@prisma/client": "^6.19.2",
     "bcrypt": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
