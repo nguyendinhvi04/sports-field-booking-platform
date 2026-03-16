@@ -18,11 +18,11 @@
         <div class="role-group">
           <label
             class="role-option"
-            :class="{ 'role-option--active': role === 'customer' }"
-            @click="role = 'customer'"
+            :class="{ 'role-option--active': role === 'USER' }"
+            @click="role = 'USER'"
           >
-            <span class="role-checkbox" :class="{ 'role-checkbox--checked': role === 'customer' }">
-              <svg v-if="role === 'customer'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <span class="role-checkbox" :class="{ 'role-checkbox--checked': role === 'USER' }">
+              <svg v-if="role === 'USER'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </span>
@@ -35,11 +35,11 @@
 
           <label
             class="role-option"
-            :class="{ 'role-option--active': role === 'owner' }"
-            @click="role = 'owner'"
+            :class="{ 'role-option--active': role === 'OWNER' }"
+            @click="role = 'OWNER'"
           >
-            <span class="role-checkbox" :class="{ 'role-checkbox--checked': role === 'owner' }">
-              <svg v-if="role === 'owner'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <span class="role-checkbox" :class="{ 'role-checkbox--checked': role === 'OWNER' }">
+              <svg v-if="role === 'OWNER'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </span>
@@ -242,11 +242,13 @@
 </template>
 
 <script>
+import { authService } from '@/services/auth.service';
+
 export default {
   name: 'RegisterPage',
   data() {
     return {
-      role: 'customer',
+      role: 'USER',
       form: {
         fullName: '',
         email: '',
@@ -364,9 +366,26 @@ export default {
     async handleRegister() {
       if (!this.validateAll()) return
       this.loading = true
-      await new Promise(r => setTimeout(r, 1400))
-      this.loading = false
-      alert(`Đăng ký thành công với vai trò: ${this.role === 'customer' ? 'Khách hàng' : 'Chủ sân'}`)
+      
+      try {
+        const payload = {
+          fullName: this.form.fullName,
+          email: this.form.email,
+          password: this.form.password,
+          phone: this.form.phone,
+          role: this.role
+        };
+
+        await authService.register(payload);
+        alert('Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
+        this.$router.push('/client/login');
+      } catch (error) {
+        console.error('Registration error:', error);
+        const errorMsg = error.response?.data?.message || 'Đăng ký thất bại. Email hoặc số điện thoại có thể đã tồn tại.';
+        alert(errorMsg);
+      } finally {
+        this.loading = false
+      }
     },
 
     goLogin() {

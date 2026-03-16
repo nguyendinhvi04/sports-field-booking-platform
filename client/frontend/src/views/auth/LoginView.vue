@@ -18,11 +18,11 @@
         <div class="role-group">
           <label
             class="role-option"
-            :class="{ 'role-option--active': role === 'customer' }"
-            @click="role = 'customer'"
+            :class="{ 'role-option--active': role === 'USER' }"
+            @click="role = 'USER'"
           >
-            <span class="role-checkbox" :class="{ 'role-checkbox--checked': role === 'customer' }">
-              <svg v-if="role === 'customer'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <span class="role-checkbox" :class="{ 'role-checkbox--checked': role === 'USER' }">
+              <svg v-if="role === 'USER'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </span>
@@ -32,14 +32,13 @@
             </svg>
             Khách hàng
           </label>
-
           <label
             class="role-option"
-            :class="{ 'role-option--active': role === 'owner' }"
-            @click="role = 'owner'"
+            :class="{ 'role-option--active': role === 'OWNER' }"
+            @click="role = 'OWNER'"
           >
-            <span class="role-checkbox" :class="{ 'role-checkbox--checked': role === 'owner' }">
-              <svg v-if="role === 'owner'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <span class="role-checkbox" :class="{ 'role-checkbox--checked': role === 'OWNER' }">
+              <svg v-if="role === 'OWNER'" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </span>
@@ -112,7 +111,7 @@
         </div>
 
         <!-- Social buttons -->
-        <button class="btn-social" @click="signInGoogle">
+        <button class="btn-social" @click="handleGoogleLogin">
           <!-- Google G icon -->
           <svg width="20" height="20" viewBox="0 0 48 48">
             <path fill="#EA4335" d="M24 9.5c3.13 0 5.95 1.08 8.17 2.85l6.1-6.1C34.36 3.07 29.45 1 24 1 14.82 1 7.03 6.48 3.36 14.27l7.2 5.59C12.29 13.65 17.67 9.5 24 9.5z"/>
@@ -123,16 +122,24 @@
           <span>Đăng nhập bằng Google</span>
         </button>
 
-        <button class="btn-social" @click="signInMicrosoft">
+        <button class="btn-social" @click="handleFacebookLogin">
+          <!-- Facebook icon -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          </svg>
+          <span>Đăng nhập bằng Facebook</span>
+        </button>
+
+        <!-- <button class="btn-social" @click="signInMicrosoft"> -->
           <!-- Microsoft icon -->
-          <svg width="20" height="20" viewBox="0 0 21 21">
+          <!-- <svg width="20" height="20" viewBox="0 0 21 21">
             <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
             <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
             <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
             <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
           </svg>
           <span>Đăng nhập bằng Microsoft</span>
-        </button>
+        </button> -->
 
       </div>
     </div>
@@ -141,11 +148,13 @@
 </template>
 
 <script>
+import { authService } from '@/services/auth.service';
+
 export default {
   name: 'LoginPage',
   data() {
     return {
-      role: 'customer',
+      role: 'USER',
       form: {
         email: '',
         password: '',
@@ -184,9 +193,39 @@ export default {
       this.validatePassword()
       if (this.errors.email || this.errors.password) return
       this.loading = true
-      await new Promise(r => setTimeout(r, 1200))
-      this.loading = false
-      alert(`Đăng nhập với vai trò: ${this.role === 'customer' ? 'Khách hàng' : 'Chủ sân'}`)
+      
+      try {
+        const response = await authService.login(this.form.email, this.form.password);
+        
+        // 1. Lưu Token và thông tin User
+        localStorage.setItem('token', response.data.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+
+        // 2. Điều hướng dựa trên Role từ BE
+        const userRole = response.data.data.user.role;
+        console.log(this.role);
+
+        console.log(userRole);
+        if(this.role === userRole){
+        if (userRole === 'OWNER') {
+          this.$router.push('/admin');
+        } else if(userRole === 'USER') {
+          this.$router.push('/');
+        }
+        }
+        else {
+            alert("Sai quyền tài khoản");
+            this.role = "";
+            this.form.email = "";
+            this.form.password = "";
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        const errorMsg = error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.';
+        alert(errorMsg);
+      } finally {
+        this.loading = false
+      }
     },
     goRegister() {
       this.$router.push('/client/register');
@@ -197,6 +236,100 @@ export default {
     signInMicrosoft() {
       alert('Đăng nhập bằng Microsoft')
     },
+
+    // --- Facebook Login ---
+    initFacebook() {
+      window.fbAsyncInit = () => {
+        window.FB.init({
+          appId      : '1129002909328616', // ID ứng dụng từ Meta
+          cookie     : true,
+          xfbml      : true,
+          version    : 'v18.0'
+        });
+      };
+
+      (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+      }(document, 'script', 'facebook-jssdk'));
+    },
+
+    // --- Google Login ---
+    initGoogle() {
+      const script = document.createElement('script');
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        window.google.accounts.id.initialize({
+          client_id: "265183201039-tbm0nkoad98ftmn5pt43uiql7tnm3iuv.apps.googleusercontent.com",
+          callback: (response) => {
+            this.processSocialLogin(response.credential, 'google');
+          }
+        });
+      };
+      document.head.appendChild(script);
+    },
+
+    handleGoogleLogin() {
+      if (!window.google) {
+        alert("Google SDK chưa sẵn sàng.");
+        return;
+      }
+      window.google.accounts.id.prompt(); // One Tap
+      // Hoặc dùng nút bấm tùy chỉnh
+    },
+
+    handleFacebookLogin() {
+      if (!window.FB) {
+        alert("Facebook SDK chưa sẵn sàng. Vui lòng thử lại sau.");
+        return;
+      }
+
+      window.FB.login((response) => {
+        if (response.authResponse) {
+          const accessToken = response.authResponse.accessToken;
+          this.processSocialLogin(accessToken, 'facebook');
+        } else {
+          console.log('User cancelled login or did not fully authorize.');
+        }
+      }, { scope: 'public_profile,email' });
+    },
+
+    async processSocialLogin(token, provider) {
+      this.loading = true;
+      try {
+        let response;
+        if (provider === 'facebook') {
+          response = await authService.loginWithFacebook(token, this.role);
+        } else if (provider === 'google') {
+          response = await authService.loginWithGoogle(token, this.role);
+        }
+        
+        // Lưu Token và điều hướng (tương tự login thường)
+        localStorage.setItem('token', response.data.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+
+        const userRole = response.data.data.user.role;
+        if (userRole === 'OWNER') {
+          this.$router.push('/admin');
+        } else {
+          this.$router.push('/');
+        }
+      } catch (error) {
+        console.error(`${provider} Login error:`, error);
+        alert(`Đăng nhập bằng ${provider} thất bại.`);
+      } finally {
+        this.loading = false;
+      }
+    }
+  },
+  mounted() {
+    this.initFacebook();
+    this.initGoogle();
   },
 }
 </script>

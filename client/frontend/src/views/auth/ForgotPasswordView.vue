@@ -147,6 +147,8 @@
 </template>
 
 <script>
+import { authService } from '@/services/auth.service';
+
 export default {
   name: 'ForgotPasswordPage',
   data() {
@@ -185,17 +187,29 @@ export default {
     async handleSend() {
       if (!this.validateEmail()) return
       this.loading = true
-      await new Promise(r => setTimeout(r, 1400))
-      this.loading = false
-      this.step = 2
-      this.startCountdown()
+      try {
+        await authService.forgotPassword(this.email.trim())
+        this.step = 2
+        this.startCountdown()
+      } catch (error) {
+        console.error('Forgot password error:', error);
+        this.errors.email = error.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.'
+      } finally {
+        this.loading = false
+      }
     },
 
     async handleResend() {
       this.resending = true
-      await new Promise(r => setTimeout(r, 1200))
-      this.resending = false
-      this.startCountdown()
+      try {
+        await authService.forgotPassword(this.email.trim())
+        this.startCountdown()
+      } catch (error) {
+        console.error('Resend error:', error);
+        alert(error.response?.data?.message || 'Không thể gửi lại email vào lúc này.')
+      } finally {
+        this.resending = false
+      }
     },
 
     startCountdown() {
