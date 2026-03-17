@@ -1,5 +1,5 @@
 <template>
-  <footer class="bg-dark  pt-5 pb-3 mt-5">
+  <footer class="bg-dark pt-5 pb-3 w-100">
     <div class="container">
       <div class="row">
 
@@ -16,10 +16,10 @@
         <div class="col-md-4 ">
           <h5 class="text-white">Menu</h5>
           <ul class="list-unstyled">
-            <li><a href="#" class="text-white">Trang chủ</a></li>
-            <li><a href="#" class="text-white">Danh sách sân</a></li>
-            <li><a href="#" class="text-white">Đặt sân</a></li>
-            <li><a href="#" class="text-white">Lịch sử đặt</a></li>
+            <li><router-link to="/" class="text-white text-decoration-none">Trang chủ</router-link></li>
+            <li><router-link to="/about" class="text-white text-decoration-none">Giới thiệu</router-link></li>
+            <li><router-link to="/booking" class="text-white text-decoration-none">Đặt sân</router-link></li>
+            <li><router-link to="/contact" class="text-white text-decoration-none">Tìm bạn/Bản đồ</router-link></li>
           </ul>
         </div>
 

@@ -1,42 +1,44 @@
 <template>
   <section class="blog-section">
-    <div class="blog-section__header">
-      <h2 class="blog-section__title">BLOG THỂ THAO</h2>
-      <p class="blog-section__subtitle">Cập nhật những tin tức và bài viết mới nhất từ Playfinder.</p>
-    </div>
+    <div class="container">
+      <div class="blog-section__header">
+        <h2 class="blog-section__title">BLOG THỂ THAO</h2>
+        <p class="blog-section__subtitle">Cập nhật những tin tức và bài viết mới nhất từ Playfinder.</p>
+      </div>
 
-    <div class="blog-grid">
-      <article v-for="post in posts" :key="post.id" class="blog-card">
-        <!-- Thumbnail -->
-        <div class="blog-card__thumb">
-          <img :src="post.image" :alt="post.title" class="blog-card__img" />
-          <div class="blog-card__thumb-overlay">
-            <div class="blog-card__thumb-label">
-              <div class="thumb-logo">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="#4ade80" stroke-width="2.5"/>
-                  <path d="M8 12l3 3 5-5" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Playfinder</span>
+      <div class="blog-grid">
+        <article v-for="post in posts" :key="post.id" class="blog-card">
+          <!-- Thumbnail -->
+          <div class="blog-card__thumb">
+            <img :src="post.image" :alt="post.title" class="blog-card__img" />
+            <div class="blog-card__thumb-overlay">
+              <div class="blog-card__thumb-label">
+                <div class="thumb-logo">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#4ade80" stroke-width="2.5"/>
+                    <path d="M8 12l3 3 5-5" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span>Playfinder</span>
+                </div>
+                <strong>Live Calendar</strong>
               </div>
-              <strong>Live Calendar</strong>
-            </div>
-            <!-- Decorative diagonal stripes -->
-            <div class="thumb-stripes">
-              <span></span><span></span>
+              <!-- Decorative diagonal stripes -->
+              <div class="thumb-stripes">
+                <span></span><span></span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Body -->
-        <div class="blog-card__body">
-          <h3 class="blog-card__title">{{ post.title }}</h3>
-          <div class="blog-card__underline"></div>
-          <p class="blog-card__excerpt">{{ post.excerpt }}</p>
-          <p class="blog-card__date">{{ post.date }}</p>
-          <a href="#" class="blog-card__link">Đọc thêm</a>
-        </div>
-      </article>
+          <!-- Body -->
+          <div class="blog-card__body">
+            <h3 class="blog-card__title">{{ post.title }}</h3>
+            <div class="blog-card__underline"></div>
+            <p class="blog-card__excerpt">{{ post.excerpt }}</p>
+            <p class="blog-card__date">{{ post.date }}</p>
+            <a href="#" class="blog-card__link">Đọc thêm</a>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 </template>
@@ -82,9 +84,8 @@ export default {
 .blog-section {
   font-family: 'Barlow', sans-serif;
   background: #fff;
-  padding: 60px 40px 70px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 80px 20px;
+  width: 100%;
 }
 
 /* ─── HEADER ─── */

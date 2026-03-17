@@ -46,8 +46,8 @@
       <!-- ✅ Desktop search card — UNCHANGED -->
       <div class="hero__desktop-card">
         <h1 class="dc-title">
-          <span class="green">TÌM KIẾM TRÒ</span><br/>
-          <span class="green">CHƠI </span><span class="navy">CỦA BẠN</span>
+          <span class="navy">TÌM KIẾM TRÒ</span><br/>
+          <span class="navy">CHƠI </span><span class="navy">CỦA BẠN</span>
         </h1>
         <p class="dc-sub">Nền tảng đặt sân thể thao số 1 Việt Nam</p>
 
@@ -95,10 +95,6 @@
 
     </section>
 
-    <!-- ════════════════════════════════════════
-         MOBILE ONLY — search card below image
-         Matches screenshot exactly
-    ════════════════════════════════════════ -->
     <div class="mobile-search">
       <h1 class="ms-title">
         <span class="dark">TÌM SÂN NHANH CHÓNG</span>
@@ -254,7 +250,7 @@ export default {
 
   data() {
     return {
-      selectedSport: "badminton",
+      selectedSport: "Cầu lông",
       location: "Đà Nẵng",
       currentBannerIndex: 0,
       loadingGPS: false,
@@ -316,8 +312,8 @@ export default {
     search() {
       if (!this.location.trim()) return;
       this.$router.push({
-        path: `/san/${this.selectedSport}`,
-        query: { location: this.location },
+        path: `/booking`,
+        query: { city: this.location, sport: this.selectedSport },
       }).catch(() => {});
     },
   },
@@ -509,7 +505,7 @@ export default {
   .mobile-search {
     display: flex; flex-direction: column;
     padding: 24px 20px;
-    background: #fff;
+    background: var(--bg);
     flex: 1; /* Occupy remaining space in hero-root */
     justify-content: center; /* Center content vertically if space permits */
   }

@@ -94,7 +94,7 @@
 
         <!-- Forgot password -->
         <div class="forgot-row">
-          <a href="/client/forgot-password" class="forgot-link">Quên mật khẩu?</a>
+          <a href="/auth/forgot-password" class="forgot-link">Quên mật khẩu?</a>
         </div>
 
         <!-- Submit button -->
@@ -228,7 +228,7 @@ export default {
       }
     },
     goRegister() {
-      this.$router.push('/client/register');
+      this.$router.push('/auth/register');
     },
     signInGoogle() {
       alert('Đăng nhập bằng Google')

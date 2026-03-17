@@ -53,7 +53,7 @@
         </template>
 
         <template v-else>
-          <router-link to="/client/login" class="nav-link">
+          <router-link to="/auth/login" class="nav-link">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="4" width="18" height="18" rx="2" />
               <path d="M16 2v4M8 2v4M3 10h18" />
@@ -79,7 +79,7 @@
     
     <!-- Search Dropdown Overlay -->
     <transition name="search-dropdown">
-      <div v-if="isInternalSearchActive" class="search-overlay" @click.stop @mousedown.stop>
+      <div v-if="isInternalSearchActive" class="client-search-overlay" @click.stop @mousedown.stop>
         <div class="search-bar-container">
           <p class="search-hint">Choose a sport and search by location or venue</p>
           <div class="search-inputs">
@@ -162,7 +162,7 @@
               </button>
             </template>
             <template v-else>
-              <router-link @click="closeMenu" to="/client/login" class="mobile-nav-item">
+              <router-link @click="closeMenu" to="/auth/login" class="mobile-nav-item">
                 ĐĂNG NHẬP
               </router-link>
             </template>
@@ -218,21 +218,35 @@ export default {
       }
     },
     closeSearch() {
-      console.warn("closeSearch CALLED! Stack:", new Error().stack);
       this.isInternalSearchActive = false;
     },
     handleSearch() {
       console.log("handleSearch triggered for:", this.selectedSportSearch, this.locationSearch);
-      // Temporarily disabled auto-close to debug persistent visibility
-      // this.closeSearch();
+      
+      const queryParams = {};
+      if (this.selectedSportSearch) queryParams.sport = this.selectedSportSearch;
+      if (this.locationSearch) queryParams.city = this.locationSearch;
+      
+      this.$router.push({ path: '/booking', query: queryParams });
+      
+      this.closeSearch();
     },
     handleLogout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "/";
+    },
+    handleOutsideClick() {
+      if (this.isInternalSearchActive) {
+        this.closeSearch();
+      }
     }
   },
+  mounted() {
+    document.addEventListener('click', this.handleOutsideClick);
+  },
   beforeUnmount() {
+    document.removeEventListener('click', this.handleOutsideClick);
     document.body.style.overflow = '';
   }
 };
@@ -543,7 +557,7 @@ export default {
 }
 
 /* Search Dropdown Styles */
-.search-overlay {
+.client-search-overlay {
   position: fixed !important;
   top: 80px !important;
   left: 0 !important;
@@ -556,6 +570,7 @@ export default {
   justify-content: center;
   border-top: 1px solid #e2e8f0 !important;
   animation: slideDown 0.3s ease-out !important;
+  opacity: 1 !important; /* Ensure it stays visible after animation */
 }
 
 @keyframes slideDown {

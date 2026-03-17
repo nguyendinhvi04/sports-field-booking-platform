@@ -90,6 +90,14 @@
           </div>
         </div>
       </section>
+       <!-- ── Services ── -->
+      <section
+        id="services"
+        aria-labelledby="services-heading"
+        class="section-wrapper"
+      >
+        <ServicesView heading-id="services-heading" />
+      </section>
       <!-- ── Statistics ── -->
       <section
         id="statistics"
@@ -98,22 +106,7 @@
       >
         <StatisticsView heading-id="stats-heading" />
       </section>
-      <!-- ── Services ── -->
-      <section
-        id="services"
-        aria-labelledby="services-heading"
-        class="section-wrapper"
-      >
-        <ServicesView heading-id="services-heading" />
-      </section>
-      <section
-        id="venue-showcase"
-        aria-labelledby="showcase-heading"
-        class="section-wrapper"
-      >
-        <VenueView heading-id="showcase-heading" />
-      </section>
-
+     
       <!-- ── Blog ── -->
       <section
         id="blog"
@@ -124,6 +117,14 @@
       >
         <BlogView heading-id="blog-heading" />
       </section>
+            <section
+        id="venue-showcase"
+        aria-labelledby="showcase-heading"
+        class="section-wrapper"
+      >
+        <VenueView heading-id="showcase-heading" />
+      </section>
+
 
     </main>
   </div>

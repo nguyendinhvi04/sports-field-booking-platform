@@ -300,6 +300,7 @@ export default {
 
       filters: {
         sport:    this.$route?.query.sport    || "badminton",
+        city:     this.$route?.query.city     || "",
         booking:  this.$route?.query.booking  ? [].concat(this.$route.query.booking) : [],
         byDate:   this.$route?.query.byDate   === "true",
         format:   this.$route?.query.format   ? [].concat(this.$route.query.format)  : [],
@@ -355,7 +356,7 @@ export default {
       return SPORT_LABELS[this.filters.sport] || "Sân thể thao";
     },
     locationLabel() {
-      return this.$route?.params.city || "Đà Nẵng";
+      return this.filters.city || "Đà Nẵng";
     },
     onlineBookingCount() {
       return this.venues.filter(v => v.hasOnlineBooking).length;
@@ -410,6 +411,7 @@ export default {
       handler(val) {
         const query = {};
         if (val.sport)            query.sport    = val.sport;
+        if (val.city)             query.city     = val.city;
         if (val.booking.length)   query.booking  = val.booking;
         if (val.byDate)           query.byDate   = "true";
         if (val.format.length)    query.format   = val.format;
@@ -433,6 +435,7 @@ export default {
       try {
         const params = {
           sport:    this.filters.sport,
+          city:     this.filters.city,
           radius:   this.filters.radius,
           booking:  this.filters.booking,
           format:   this.filters.format,

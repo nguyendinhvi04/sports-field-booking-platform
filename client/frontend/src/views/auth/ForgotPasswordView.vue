@@ -224,8 +224,8 @@ export default {
       }, 1000)
     },
 
-    goLogin() { window.location.href = '/client/login'; },
-    goRegister() { window.location.href = '/client/register'; },
+    goLogin() { window.location.href = '/auth/login'; },
+    goRegister() { window.location.href = '/auth/register'; },
   },
 }
 </script>

@@ -372,7 +372,7 @@ export default {
 
         await authService.register(payload);
         alert('Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
-        this.$router.push('/client/login');
+        this.$router.push('/auth/login');
       } catch (error) {
         console.error('Registration error:', error);
         const errorMsg = error.response?.data?.message || 'Đăng ký thất bại. Email hoặc số điện thoại có thể đã tồn tại.';
@@ -383,7 +383,7 @@ export default {
     },
 
     goLogin() {
-      window.location.href = '/client/login';
+      window.location.href = '/auth/login';
     },
 
     // --- Google Integrated Logic ---

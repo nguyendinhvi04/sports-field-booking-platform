@@ -20,12 +20,22 @@ export default {
 :root {
   --primary-font: 'Barlow', sans-serif;
   --heading-font: 'Barlow Condensed', sans-serif;
+  --bg: #e0e0e0;
+  --card-bg: #e0e0e0;
+  --border: transparent;
 }
 
-body, html, #app {
+body, html {
+  background-color: var(--bg) !important;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
   font-family: var(--primary-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg);
 }
 
 h1, h2, h3, h4, h5, h6, .display-font {

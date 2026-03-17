@@ -71,7 +71,7 @@ export default {
 
 .cities-section {
   font-family: 'Barlow';
-  background: #fff;
+  background: var(--bg);
   padding: 60px 40px 70px;
   max-width: 1200px;
   margin: 0 auto;

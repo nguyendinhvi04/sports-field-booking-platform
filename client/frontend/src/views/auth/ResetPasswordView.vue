@@ -84,7 +84,7 @@ export default {
     this.token = this.$route.query.token;
     if (!this.token) {
       alert('Token không hợp lệ hoặc đã hết hạn.');
-      this.$router.push('/client/login');
+      this.$router.push('/auth/login');
     }
   },
   methods: {
@@ -117,7 +117,7 @@ export default {
       }
     },
     goLogin() {
-      this.$router.push('/client/login');
+      this.$router.push('/auth/login');
     }
   }
 }

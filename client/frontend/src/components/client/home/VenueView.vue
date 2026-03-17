@@ -37,7 +37,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const title = ref('Playfinder dành cho các chủ cơ sở thể thao')
+const title = ref('Nền tảng dành cho các chủ cơ sở thể thao')
 const subtitle = ref(
   "Cho dù bạn là hội đồng, trường học, nhóm cộng đồng hay trung tâm giải trí, việc trở thành Đối tác của Playfinder có thể mang lại lợi ích cho địa điểm thể thao của bạn theo nhiều cách."
 )
@@ -106,9 +106,6 @@ const handleClick = (feature) => {
   --green-glow: rgba(22, 163, 74, 0.12);
   --text-dark: #1a1a2e;
   --text-muted: #555566;
-  --bg: #f7f8fa;
-  --card-bg: #ffffff;
-  --border: #e8eaed;
 
   position: relative;
   background: var(--bg);
@@ -178,8 +175,8 @@ const handleClick = (feature) => {
 /* ── Card ── */
 .feature-card {
   background: var(--card-bg);
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
+  border: none;
+  border-radius: 30px;
   padding: 50px 36px 45px;
   display: flex;
   flex-direction: column;
@@ -190,7 +187,8 @@ const handleClick = (feature) => {
   overflow: hidden;
   opacity: 0;
   transform: translateY(40px);
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  box-shadow: 15px 15px 30px #bebebe, -15px -15px 30px #ffffff;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .playfinder-section.visible .feature-card {
@@ -212,9 +210,8 @@ const handleClick = (feature) => {
 }
 
 .feature-card:hover {
-  transform: translateY(-12px) !important;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
-  border-color: var(--green);
+  transform: translateY(-5px) !important;
+  box-shadow: inset 5px 5px 10px #bebebe, inset -5px -5px 10px #ffffff !important;
 }
 
 .feature-card:hover::after {

@@ -32,6 +32,8 @@
           <span class="stat-label">{{ stat.label }}</span>
         </div>
       </div>
+            <!-- Bottom strip -->
+      <div class="bottom-strip" />
     </div>
   </section>
 </template>
@@ -138,15 +140,20 @@ onUnmounted(() => observer?.disconnect())
   --green-glow: rgba(22, 163, 74, 0.12);
   --text-dark: #1a1a2e;
   --text-muted: #555566;
-  --bg: #f8f9fa;
-  --card-bg: #ffffff;
-  --border: #eef0f2;
 
   position: relative;
-  background: var(--bg);
+  background: #ffffff;
   padding: 100px 20px 120px;
   font-family: 'Barlow', sans-serif;
   overflow: hidden;
+}
+/* ── Bottom Strip ── */
+.bottom-strip {
+  margin-top: 80px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--green) 0%, rgb(34, 197, 94) 50%, var(--green) 100%);
+  opacity: 0.6;
 }
 
 /* ── Dot grid ── */
