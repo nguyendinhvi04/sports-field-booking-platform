@@ -209,7 +209,7 @@
         </div>
 
         <!-- Social buttons -->
-        <button class="btn-social" @click="signInGoogle">
+        <button class="btn-social" @click="handleGoogleLogin">
           <svg width="20" height="20" viewBox="0 0 48 48">
             <path fill="#EA4335" d="M24 9.5c3.13 0 5.95 1.08 8.17 2.85l6.1-6.1C34.36 3.07 29.45 1 24 1 14.82 1 7.03 6.48 3.36 14.27l7.2 5.59C12.29 13.65 17.67 9.5 24 9.5z"/>
             <path fill="#4285F4" d="M46.1 24.55c0-1.64-.15-3.22-.42-4.75H24v9h12.42c-.54 2.87-2.2 5.3-4.67 6.93l7.19 5.59C42.99 37.24 46.1 31.36 46.1 24.55z"/>
@@ -230,12 +230,6 @@
         </button>
 
       </div>
-
-      <!-- Bottom note -->
-      <p class="bottom-note">
-        Bạn muốn quản lý sân của mình?
-        <a href="#" class="bottom-link">Đăng ký tại đây</a>
-      </p>
     </div>
 
   </div>
@@ -391,8 +385,54 @@ export default {
     goLogin() {
       window.location.href = '/client/login';
     },
-    signInGoogle() { alert('Đăng ký bằng Google') },
+
+    // --- Google Integrated Logic ---
+    initGoogle() {
+      const script = document.createElement('script');
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true; script.defer = true;
+      script.onload = () => {
+        window.google.accounts.id.initialize({
+          client_id: "265183201039-tbm0nkoad98ftmn5pt43uiql7tnm3iuv.apps.googleusercontent.com",
+          callback: (response) => {
+            this.processSocialLogin(response.credential, 'google');
+          }
+        });
+      };
+      document.head.appendChild(script);
+    },
+
+    handleGoogleLogin() {
+      if (!window.google) return alert("Google SDK chưa sẵn sàng.");
+      window.google.accounts.id.prompt();
+    },
+
+    async processSocialLogin(token, provider) {
+      if (!this.form.acceptPolicy) {
+        this.errors.policy = 'Bạn cần đồng ý với điều khoản trước khi đăng ký bằng mạng xã hội.';
+        return alert(this.errors.policy);
+      }
+      this.loading = true;
+      try {
+        const response = await authService.loginWithGoogle(token, this.role);
+        localStorage.setItem('token', response.data.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        
+        const userRole = response.data.data.user.role;
+        if (userRole === 'OWNER') this.$router.push('/admin');
+        else this.$router.push('/');
+      } catch (error) {
+        console.error(`${provider} Registration error:`, error);
+        alert(`Đăng ký bằng ${provider} thất bại.`);
+      } finally {
+        this.loading = false;
+      }
+    },
+
     signInMicrosoft() { alert('Đăng ký bằng Microsoft') },
+  },
+  mounted() {
+    this.initGoogle();
   },
 }
 </script>
