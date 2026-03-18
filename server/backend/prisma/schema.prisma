@@ -134,6 +134,7 @@ model User {
   role            Role      @default(USER)
   isActive        Boolean   @default(true)
   isEmailVerified Boolean   @default(false)
+  isVerified      Boolean   @default(false) // Trạng thái KYC / Hoàn thiện hồ sơ (Đặc biệt cho Owner)
   googleId        String?   @unique
   facebookId      String?   @unique
   createdAt       DateTime  @default(now())
@@ -150,6 +151,7 @@ model User {
   ownedClubs       Club[]
   passwordResets   PasswordReset[]
   customerProfiles ClubCustomer[]
+  ownerProfile     OwnerProfile? // Chỉ tồn tại nếu user.role === 'OWNER'
 
   @@map("users")
 }
@@ -618,4 +620,41 @@ model ClubCustomer {
 
   @@unique([clubId, userId])
   @@map("club_customers")
+}
+
+// ============================================================
+// OWNER PROFILE (KYC + PAYOUT)
+// ============================================================
+
+model OwnerProfile {
+  id                 String         @id @default(cuid())
+  userId             String         @unique
+
+  // Thông tin định danh cá nhân (KYC)
+  idCardNumber       String?        // Số CCCD / CMND
+  idCardFrontUrl     String?        // Ảnh CCCD mặt trước
+  idCardBackUrl      String?        // Ảnh CCCD mặt sau
+  businessLicenseUrl String?        // Ảnh Giấy phép kinh doanh (không bắt buộc)
+  taxCode            String?        // Mã số thuế doanh nghiệp
+
+  // Tài khoản ngân hàng nhận tiền (Payout)
+  bankName           String?        // VD: "Vietcombank", "Techcombank"
+  bankAccountNumber  String?        // Số tài khoản ngân hàng
+  bankAccountName    String?        // Tên chủ tài khoản (CHỮ HOA, khớp tên pháp lý)
+
+  // Quy định vận hành mặc định
+  cancellationPolicy String?        // VD: "Hủy trước 24h hoàn 100%, sau đó không hoàn..."
+
+  // Trạng thái duyệt hồ sơ KYC bởi Admin
+  kycStatus          ApprovalStatus @default(PENDING)
+  kycReviewedAt      DateTime?      // Thời điểm Admin xét duyệt
+  kycReviewedBy      String?        // ID của Admin đã duyệt
+  kycNote            String?        // Ghi chú / Lý do từ chối của Admin
+
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("owner_profiles")
 }
