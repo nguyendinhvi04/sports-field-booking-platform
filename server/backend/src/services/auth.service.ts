@@ -65,7 +65,7 @@ export async function registerUser(input: RegisterInput) {
  * Đăng nhập và trả về token
  */
 export async function loginUser(input: LoginInput) {
-  // Tìm user theo email
+  // Tìm user theo email, kèm ownerProfile.kycStatus nếu là OWNER
   const user = await prisma.user.findUnique({
     where: { email: input.email },
     select: {
@@ -75,7 +75,11 @@ export async function loginUser(input: LoginInput) {
       passwordHash: true,
       role: true,
       isActive: true,
+      isVerified: true,
       avatarUrl: true,
+      ownerProfile: {
+        select: { kycStatus: true }, // Lấy trạng thái KYC để mở/khóa dashboard
+      },
     },
   });
 
@@ -111,9 +115,12 @@ export async function loginUser(input: LoginInput) {
     user: {
       id: user.id,
       email: user.email,
-      fullName: user.fullName,
+      name: user.fullName,
       role: user.role,
       avatarUrl: user.avatarUrl,
+      isVerified: user.isVerified,
+      // kycStatus: PENDING = đã nộp chờ duyệt, APPROVED = đã duyệt mở khóa, REJECTED = bị từ chối
+      kycStatus: user.ownerProfile?.kycStatus ?? null,
     },
   };
 }

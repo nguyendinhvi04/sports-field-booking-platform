@@ -102,6 +102,18 @@ const routes = [
     component: () => import("../views/owner/CustomersView.vue"),
     meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
   },
+  {
+    path: "/owner/onboarding",
+    name: "owner-onboarding",
+    component: () => import("../views/owner/OwnerOnboardingView.vue"),
+    meta: { layout: "nocore", requiresAuth: true, roles: ["OWNER"] }, // Dùng nocore để tập trung vào form, không hiện sidebar
+  },
+  {
+    path: "/owner/settings",
+    name: "owner-settings",
+    component: () => import("../views/owner/SettingsView.vue"),
+    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
+  },
 ];
 
 const router = createRouter({

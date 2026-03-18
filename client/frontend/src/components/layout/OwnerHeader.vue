@@ -7,7 +7,7 @@
       <div class="header-title">
         <h2 class="breadcrumb-item primary">DASHBOARD</h2>
         <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-item current">Chào buổi sáng, Owner! 👋</span>
+        <span class="breadcrumb-item current">Chào buổi sáng, {{ user?.name || 'Owner' }}! 👋</span>
       </div>
     </div>
     
@@ -20,10 +20,10 @@
       </div>
       <div class="user-profile">
         <div class="user-info">
-          <p class="user-name">Phan Tuấn Anh</p>
-          <p class="user-role">Sân bóng Thành Phát</p>
+          <p class="user-name">{{ user?.name  }}</p>
+          <p class="user-role">{{ user?.email  }}</p>
         </div>
-        <img class="user-avatar" src="https://ui-avatars.com/api/?name=Owner&background=16a34a&color=fff" alt="User Avatar" />
+        <img class="user-avatar" :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'Owner')}&background=16a34a&color=fff`" alt="User Avatar" />
       </div>
     </div>
   </header>
@@ -32,7 +32,22 @@
 <script>
 export default {
   name: 'OwnerHeader',
-  emits: ['toggle-sidebar']
+  emits: ['toggle-sidebar'],
+  data() {
+    return {
+      user: null
+    }
+  },
+  mounted() {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        this.user = JSON.parse(userData);
+      } catch (e) {
+        console.error("Lỗi parse dữ liệu user:", e);
+      }
+    }
+  }
 }
 </script>
 
