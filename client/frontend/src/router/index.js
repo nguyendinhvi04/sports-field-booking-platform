@@ -56,7 +56,7 @@ const routes = [
     path: "/admin",
     name: "admin-home",
     component: () => import("../views/admin/HomeView.vue"),
-    meta: { layout: "admin", requiresAuth: true, roles: ["OWNER", "ADMIN"] },
+    meta: { layout: "admin", requiresAuth: true, roles: ["ADMIN"] },
   },
 
   // Page Owner
@@ -64,13 +64,43 @@ const routes = [
     path: "/owner",
     name: "owner-home",
     component: () => import("../views/owner/HomeView.vue"),
-    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER", "ADMIN"] },
+    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
   },
   {
     path: "/dashboard/owner",
     name: "owner-dashboard",
     component: () => import("../views/owner/DashboardView.vue"),
-    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER", "ADMIN"] },
+    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
+  },
+  {
+    path: "/owner/clubs",
+    name: "owner-clubs",
+    component: () => import("../views/owner/ClubsView.vue"),
+    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
+  },
+  {
+    path: "/owner/courts",
+    name: "owner-courts",
+    component: () => import("../views/owner/CourtsView.vue"),
+    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
+  },
+  {
+    path: "/owner/bookings",
+    name: "owner-bookings",
+    component: () => import("../views/owner/BookingsView.vue"),
+    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
+  },
+  {
+    path: "/owner/finance",
+    name: "owner-finance",
+    component: () => import("../views/owner/FinanceView.vue"),
+    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
+  },
+  {
+    path: "/owner/customers",
+    name: "owner-customers",
+    component: () => import("../views/owner/CustomersView.vue"),
+    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
   },
 ];
 
@@ -83,7 +113,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem("token");
   let user = null;
-  
+
   if (token) {
     try {
       user = JSON.parse(localStorage.getItem("user"));
@@ -95,6 +125,9 @@ router.beforeEach((to, from, next) => {
   // 1. Nếu đã đăng nhập mà cố tình vào trang auth (login, register...)
   if (token && (to.name === "login" || to.name === "register" || to.name === "forgot-password")) {
     if (user && user.role === 'OWNER') {
+      return next({ path: "/owner" });
+    }
+    if (user && user.role === 'ADMIN') {
       return next({ path: "/admin" });
     }
     return next({ name: "home" });
@@ -110,8 +143,11 @@ router.beforeEach((to, from, next) => {
     const isRoleValid = to.meta.roles.includes(user.role);
     if (!isRoleValid) {
       alert("Bạn không có quyền truy cập trang này!");
-      // Nếu là OWNER đang nhập nhầm thì trả về admin, còn USER trả về home
+      // Nếu là OWNER đang nhập nhầm thì trả về owner, ADMIN về admin, còn USER trả về home
       if (user.role === 'OWNER') {
+        return next({ path: "/owner" });
+      }
+      if (user.role === 'ADMIN') {
         return next({ path: "/admin" });
       }
       return next({ name: "home" });

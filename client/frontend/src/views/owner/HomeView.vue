@@ -1,12 +1,14 @@
 <template>
-  <div class="owner-home">
-    <h1>Owner Home</h1>
-    <p>Welcome to your club management area.</p>
-  </div>
+  <DashboardView />
 </template>
 
 <script>
+import DashboardView from './DashboardView.vue';
+
 export default {
-  name: 'OwnerHomeView'
+  name: 'OwnerHomeView',
+  components: {
+    DashboardView
+  }
 }
 </script>
