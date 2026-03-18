@@ -85,6 +85,12 @@ const routes = [
     meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
   },
   {
+    path: "/owner/pricing",
+    name: "owner-pricing",
+    component: () => import("../views/owner/PricingView.vue"),
+    meta: { layout: "owner", requiresAuth: true, roles: ["OWNER"] },
+  },
+  {
     path: "/owner/bookings",
     name: "owner-bookings",
     component: () => import("../views/owner/BookingsView.vue"),

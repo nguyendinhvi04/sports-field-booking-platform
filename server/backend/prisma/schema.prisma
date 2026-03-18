@@ -317,8 +317,9 @@ model Court {
 
   club      Club            @relation(fields: [clubId], references: [id], onDelete: Cascade)
   images    CourtImage[]
-  pricings  CourtPricing[]
-  timeSlots TimeSlot[]
+  pricings        CourtPricing[]
+  specialPricings SpecialDatePricing[]
+  timeSlots       TimeSlot[]
   bookings  Booking[]
   favoredBy FavoriteCourt[]
 
@@ -353,6 +354,23 @@ model CourtPricing {
   court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
 
   @@map("court_pricings")
+}
+
+model SpecialDatePricing {
+  id           String   @id @default(cuid())
+  courtId      String
+  specificDate DateTime @db.Date // Ngày cụ thể: 2026-04-30
+  startTime    DateTime @db.Time
+  endTime      DateTime @db.Time
+  pricePerHour Decimal  @db.Decimal(12, 2)
+  note         String? // "Lễ 30/4", "Tết Nguyên Đán"
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@map("special_date_pricings")
 }
 
 // ============================================================
