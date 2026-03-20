@@ -203,12 +203,9 @@ export default {
 
         // 2. Điều hướng dựa trên Role từ BE
         const userRole = response.data.data.user.role;
-        console.log(this.role);
-
-        console.log(userRole);
         if(this.role === userRole){
         if (userRole === 'OWNER') {
-          this.$router.push('/admin');
+          this.$router.push('/owner');
         } else if(userRole === 'USER') {
           this.$router.push('/');
         }
