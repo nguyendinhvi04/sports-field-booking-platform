@@ -311,20 +311,18 @@ export default {
 
         // 2. Điều hướng dựa trên Role từ BE
         const userRole = response.data.data.user.role;
-        console.log(this.role);
-
-        console.log(userRole);
-        if (this.role === userRole) {
-          if (userRole === "OWNER") {
-            this.$router.push("/admin");
-          } else if (userRole === "USER") {
-            this.$router.push("/");
-          }
-        } else {
-          alert("Sai quyền tài khoản");
-          this.role = "";
-          this.form.email = "";
-          this.form.password = "";
+        if(this.role === userRole){
+        if (userRole === 'OWNER') {
+          this.$router.push('/owner');
+        } else if(userRole === 'USER') {
+          this.$router.push('/');
+        }
+        }
+        else {
+            alert("Sai quyền tài khoản");
+            this.role = "";
+            this.form.email = "";
+            this.form.password = "";
         }
       } catch (error) {
         console.error("Login error:", error);

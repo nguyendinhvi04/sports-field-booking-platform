@@ -165,13 +165,11 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && token && user && to.meta.roles) {
     const isRoleValid = to.meta.roles.includes(user.role);
     if (!isRoleValid) {
-      alert("Bạn không có quyền truy cập trang này!");
-      // Nếu là OWNER đang nhập nhầm thì trả về owner, ADMIN về admin, còn USER trả về home
-      if (user.role === "OWNER") {
-        return next({ path: "/owner" });
+      if (user.role === 'OWNER') {
+        return next({ path: "/auth/login" });
       }
-      if (user.role === "ADMIN") {
-        return next({ path: "/admin" });
+      if (user.role === 'ADMIN') {
+        return next({ path: "/auth/login" });
       }
       return next({ name: "home" });
     }
