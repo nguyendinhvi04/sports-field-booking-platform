@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { PaymentMethod } from "@/generated/prisma";
 import type { CreateBookingInput } from "@/validations/booking.schema";
 import type { ManualBookingInput } from "@/validations/manual-booking.schema";
 import { updateClubCustomerStats } from "./club-customer.service";
@@ -21,6 +22,7 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
 
   // Kiểm tra đủ số slot yêu cầu
   if (slots.length !== input.timeSlotIds.length) {
+    console.log("du slot");
     throw new Error("SLOT_NOT_FOUND");
   }
 
@@ -131,7 +133,7 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
         },
         payment: {
           create: {
-            method: "BANK_TRANSFER",
+            method: (input.paymentMethod as PaymentMethod) || "BANK_TRANSFER",
             status: "WAITING_PAYMENT",
             amount: finalAmount,
           },
@@ -296,6 +298,7 @@ export async function getMyBookings(userId: string) {
       payment: { select: { status: true, method: true, amount: true } },
     },
   });
+
 }
 
 /**
@@ -326,5 +329,121 @@ export async function cancelBooking(bookingId: string, userId: string) {
       where: { id: bookingId },
       data: { status: "CANCELLED" },
     });
+  });
+}
+// Lay danh sach booking theo id san
+export async function getBookingByClubId(courtId: string, userId: string) {
+  try {
+    return prisma.booking.findMany({
+      where: { courtId, userId },
+      select: {
+        id: true,
+        bookerName: true,
+        bookerPhone: true,
+        bookerEmail: true,
+        status: true,
+        totalAmount: true,
+        discountAmount: true,
+        finalAmount: true,
+        note: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    })
+  }
+  catch (error) {
+    console.error("Error in getBookingByClubId:", error);
+    throw error;
+  }
+}
+
+/**
+ * Cập nhật trạng thái đơn đặt sân (Ví dụ: khách tới sân đá xong -> COMPLETED)
+ */
+export async function updateBookingStatus(
+  bookingId: string,
+  ownerId: string,
+  status: "PENDING" | "WAITING_PAYMENT" | "CONFIRMED" | "CANCELLED" | "COMPLETED"
+) {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { court: { include: { club: { select: { ownerId: true } } } } },
+  });
+
+  if (!booking) throw new Error("BOOKING_NOT_FOUND");
+  if (booking.court.club.ownerId !== ownerId) throw new Error("UNAUTHORIZED");
+
+  return prisma.$transaction(async (tx) => {
+    const updatedBooking = await tx.booking.update({
+      where: { id: bookingId },
+      data: { status },
+      include: {
+        items: { include: { timeSlot: true } },
+        payment: true,
+      },
+    });
+
+    // Nếu hủy sân, giải phóng slot và hủy thanh toán
+    if (status === "CANCELLED") {
+      const itemSlotIds = updatedBooking.items.map((i) => i.timeSlotId);
+      await tx.timeSlot.updateMany({
+        where: { id: { in: itemSlotIds } },
+        data: { status: "AVAILABLE" },
+      });
+      if (updatedBooking.payment) {
+        await tx.payment.update({
+          where: { id: updatedBooking.payment.id },
+          data: { status: "CANCELLED" },
+        });
+      }
+    }
+
+    return updatedBooking;
+  });
+}
+
+/**
+ * Xác nhận thanh toán thủ công (Chủ sân duyệt khi nhận được chuyển khoản)
+ */
+export async function confirmPaymentManual(bookingId: string, ownerId: string) {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      court: { include: { club: { select: { id: true, ownerId: true } } } },
+      payment: true,
+    },
+  });
+
+  if (!booking) throw new Error("BOOKING_NOT_FOUND");
+  if (booking.court.club.ownerId !== ownerId) throw new Error("UNAUTHORIZED");
+  if (!booking.payment) throw new Error("PAYMENT_NOT_FOUND");
+  if (booking.payment.status === "CONFIRMED") throw new Error("PAYMENT_ALREADY_CONFIRMED");
+
+  return prisma.$transaction(async (tx) => {
+    // 1. Cập nhật trạng thái payment
+    await tx.payment.update({
+      where: { id: booking.payment!.id },
+      data: {
+        status: "CONFIRMED",
+        paidAt: new Date(),
+        confirmedAt: new Date(),
+        confirmedBy: ownerId,
+      },
+    });
+
+    // 2. Chuyển trạng thái booking sang CONFIRMED
+    const updatedBooking = await tx.booking.update({
+      where: { id: bookingId },
+      data: { status: "CONFIRMED" },
+      include: {
+        items: { include: { timeSlot: true } },
+        payment: true,
+      },
+    });
+
+    // 3. Tích lũy điểm/cập nhật thống kê chi tiêu cho khách hàng
+    await updateClubCustomerStats(booking.court.club.id, booking.userId, Number(booking.finalAmount));
+
+    return updatedBooking;
   });
 }
