@@ -159,3 +159,81 @@ export async function searchClubs(filters: SearchClubFilters) {
     };
   });
 }
+
+/**
+ * Lấy chi tiết câu lạc bộ theo ID và Owner (Dùng cho Owner Dashboard)
+ */
+export async function getClubById(id: string, ownerId: string) {
+  return prisma.club.findFirst({
+    where: { id, ownerId },
+    include: {
+      courts: {
+        include: {
+          images: true,
+          pricings: true
+        }
+      },
+      images: true,
+      openingHours: true,
+      amenities: {
+        include: {
+          amenity: true
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Lấy danh sách câu lạc bộ của một Owner
+ */
+export async function getClubsByOwner(ownerId: string) {
+  return prisma.club.findMany({
+    where: { ownerId },
+    include: {
+      courts: { select: { id: true, name: true, clubId: true, sportType: true } },
+      openingHours: true
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+/**
+ * Tạo mới một câu lạc bộ
+ */
+export async function createClub(ownerId: string, data: Omit<Prisma.ClubUncheckedCreateInput, 'ownerId' | 'slug'>) {
+  const slug = (data.name || "club")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .trim() + "-" + Math.random().toString(36).substring(2, 7);
+
+  return prisma.club.create({
+    data: {
+      ...data,
+      ownerId,
+      slug,
+    }
+  });
+}
+
+
+/**
+ * Cập nhật thông tin câu lạc bộ
+ */
+export async function updateClub(clubId: string, ownerId: string, data: Prisma.ClubUpdateInput) {
+  const club = await prisma.club.findFirst({
+    where: { id: clubId, ownerId },
+  });
+
+  if (!club) {
+    throw new Error("CLUB_NOT_FOUND_OR_UNAUTHORIZED");
+  }
+
+  return prisma.club.update({
+    where: { id: clubId },
+    data,
+  });
+}

@@ -3,6 +3,7 @@ import { PaymentMethod } from "@/generated/prisma";
 import type { CreateBookingInput } from "@/validations/booking.schema";
 import type { ManualBookingInput } from "@/validations/manual-booking.schema";
 import { updateClubCustomerStats } from "./club-customer.service";
+import { includes } from "zod";
 
 // ============================================================
 // BOOKING SERVICE
@@ -35,7 +36,10 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
   // Tính tổng giá (lấy giá từ court_pricings theo giờ)
   const court = await prisma.court.findUnique({
     where: { id: input.courtId },
-    include: { pricings: { where: { isActive: true } } },
+    include: { 
+      club: { select: { slotDuration: true } },
+      pricings: { where: { isActive: true } } 
+    },
   });
   if (!court) throw new Error("COURT_NOT_FOUND");
 
@@ -54,7 +58,8 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
       return slotHour >= pStart && slotHour < pEnd && (pDow === null || pDow === slotDow);
     });
 
-    const price = pricing ? Number(pricing.pricePerHour) : 0;
+    const pricePerHour = pricing ? Number(pricing.pricePerHour) : 0;
+    const price = (pricePerHour * court.club.slotDuration) / 60;
     totalAmount += price;
     slotPrices.push({ slotId: slot.id, price });
   }
@@ -200,7 +205,10 @@ export async function createManualBooking(ownerId: string, clubId: string, input
 
   const court = await prisma.court.findUnique({
     where: { id: input.courtId },
-    include: { pricings: { where: { isActive: true } } },
+    include: { 
+      club: { select: { slotDuration: true } },
+      pricings: { where: { isActive: true } } 
+    },
   });
   if (!court) throw new Error("COURT_NOT_FOUND");
 
@@ -216,7 +224,8 @@ export async function createManualBooking(ownerId: string, clubId: string, input
       const pDow = p.dayOfWeek;
       return slotHour >= pStart && slotHour < pEnd && (pDow === null || pDow === slotDow);
     });
-    const price = pricing ? Number(pricing.pricePerHour) : 0;
+    const pricePerHour = pricing ? Number(pricing.pricePerHour) : 0;
+    const price = (pricePerHour * court.club.slotDuration) / 60;
     totalAmount += price;
     slotPrices.push({ slotId: slot.id, price });
   }
@@ -332,7 +341,7 @@ export async function cancelBooking(bookingId: string, userId: string) {
   });
 }
 // Lay danh sach booking theo id san
-export async function getBookingByClubId(courtId: string, userId: string) {
+export async function getBookingByCourtId(courtId: string, userId: string) {
   try {
     return prisma.booking.findMany({
       where: { courtId, userId },
@@ -445,5 +454,51 @@ export async function confirmPaymentManual(bookingId: string, ownerId: string) {
     await updateClubCustomerStats(booking.court.club.id, booking.userId, Number(booking.finalAmount));
 
     return updatedBooking;
+  });
+}
+// Lay danh sach theo tat ca don dat san cua chu san theo clb
+// Lấy danh sách tất cả đơn đặt sân của một CLB (Dành cho Chủ sân)
+export async function getBookingByClubId(clubId: string, ownerId: string, date?: string) {
+  // 1. Kiểm tra quyền sở hữu CLB
+  const club = await prisma.club.findFirst({
+    where: { id: clubId, ownerId },
+  });
+  if (!club) throw new Error("CLUB_NOT_FOUND_OR_UNAUTHORIZED");
+
+  // 2. Truy vấn danh sách booking
+  return prisma.booking.findMany({
+    where: {
+      items: {
+        some: {
+          timeSlot: {
+            court: { clubId }, // Lọc theo CLB
+            // Lọc theo ngày đặt sân (slots)
+            ...(date && {
+              startTime: {
+                gte: new Date(`${date}T00:00:00.000+07:00`),
+                lte: new Date(`${date}T23:59:59.999+07:00`),
+              }
+            })
+          }
+        }
+      }
+    },
+    include: {
+      court: true,
+      items: {
+        include: {
+          timeSlot: true
+        }
+      },
+      payment: true,
+      user: {
+        select: {
+          fullName: true,
+          phone: true,
+          email: true
+        }
+      }
+    },
+    orderBy: { createdAt: "desc" }
   });
 }

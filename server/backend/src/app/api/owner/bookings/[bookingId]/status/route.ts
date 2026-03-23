@@ -24,9 +24,11 @@ export async function PATCH(
 
     const booking = await updateBookingStatus(bookingId, user.userId, status);
     return successResponse("Cập nhật trạng thái thành công", booking);
-  } catch (error: any) {
-    if (error.message === "BOOKING_NOT_FOUND") return errorResponse("Không tìm thấy đơn đặt sân", 404);
-    if (error.message === "UNAUTHORIZED") return errorResponse("Bạn không có quyền thao tác trên đơn này", 403);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message === "BOOKING_NOT_FOUND") return errorResponse("Không tìm thấy đơn đặt sân", 404);
+      if (error.message === "UNAUTHORIZED") return errorResponse("Bạn không có quyền thao tác trên đơn này", 403);
+    }
     return serverErrorResponse(error);
   }
 }
