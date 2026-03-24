@@ -169,70 +169,21 @@
 </template>
 
 <script>
+import { bookingService } from '@/services/booking.service';
+import { dashboardService } from '@/services/dashboard.service';
+
 export default {
   name: 'OwnerBookingsView',
   data() {
     return {
-      currentView: 'calendar', // 'calendar' or 'list'
-      selectedClubId: 1,
+      currentView: 'calendar',
+      selectedClubId: '',
       currentDate: new Date(),
       statusFilter: 'all',
-      clubs: [
-        { id: 1, name: 'Sân bóng Thành Phát' },
-        { id: 2, name: 'Viettel Sports Center' }
-      ],
-      courts: [
-        { id: 1, clubId: 1, name: 'Sân A1', type: 'Sân 5' },
-        { id: 2, clubId: 1, name: 'Sân A2', type: 'Sân 5' },
-        { id: 3, clubId: 1, name: 'Sân B1', type: 'Sân 7' },
-        { id: 4, clubId: 1, name: 'Sân B2', type: 'Sân 7' },
-        { id: 5, clubId: 1, name: 'Sân C1', type: 'Sân 11' },
-      ],
-      timeSlots: [
-        '06:00', '07:30', '09:00', '10:30', '12:00', '13:30', 
-        '15:00', '16:30', '18:00', '19:30', '21:00', '22:30'
-      ],
-      bookings: [
-        { 
-          id: 'BK1029', 
-          clubId: 1, 
-          courtId: 1, 
-          courtName: 'Sân A1',
-          customerName: 'Trần Văn Mạnh', 
-          phone: '0987 654 321',
-          startTime: '18:00', 
-          endTime: '19:30', 
-          date: 'Hôm nay, 18/03',
-          amount: 350000,
-          status: 'CONFIRMED' 
-        },
-        { 
-          id: 'BK1030', 
-          clubId: 1, 
-          courtId: 2, 
-          courtName: 'Sân A2',
-          customerName: 'Nguyễn Hồng Liên', 
-          phone: '0912 333 888',
-          startTime: '19:30', 
-          endTime: '21:00', 
-          date: 'Hôm nay, 18/03',
-          amount: 350000,
-          status: 'PENDING' 
-        },
-        { 
-          id: 'BK1031', 
-          clubId: 1, 
-          courtId: 3, 
-          courtName: 'Sân B1',
-          customerName: 'Lê Tuấn Vũ', 
-          phone: '0345 888 999',
-          startTime: '18:00', 
-          endTime: '19:30', 
-          date: 'Hôm nay, 18/03',
-          amount: 500000,
-          status: 'COMPLETED' 
-        }
-      ]
+      clubs: [],
+      courts: [],
+      rawBookings: [],
+      isLoading: false
     }
   },
   computed: {
@@ -247,20 +198,180 @@ export default {
     currentClubCourts() {
       return this.courts.filter(c => c.clubId === this.selectedClubId);
     },
+    timeSlots() {
+      // Lấy club đang được chọn
+      const selectedClub = this.clubs.find(c => c.id === this.selectedClubId);
+      if (!selectedClub) return [];
+
+      const slotDuration = selectedClub.slotDuration || 60; // 30, 60...
+      
+      let startHour = 5;
+      let startMin = 0;
+      let endHour = 23;
+      let endMin = 0;
+
+      // Tìm lịch mở cửa dựa vào thứ hiện tại của currentDate
+      if (selectedClub.openingHours && selectedClub.openingHours.length > 0) {
+        const currentDayOfWeek = this.currentDate.getDay();
+        const todayOh = selectedClub.openingHours.find(oh => oh.dayOfWeek === currentDayOfWeek);
+        if (todayOh && !todayOh.isClosed) {
+          const openD = new Date(todayOh.openTime);
+          const closeD = new Date(todayOh.closeTime);
+          startHour = openD.getHours();
+          startMin = openD.getMinutes();
+          endHour = closeD.getHours();
+          endMin = closeD.getMinutes();
+        }
+      }
+      
+      const slots = [];
+      let currentTotalMin = startHour * 60 + startMin;
+      const endTotalMin = endHour * 60 + endMin;
+      
+      while (currentTotalMin <= endTotalMin) {
+        const h = Math.floor(currentTotalMin / 60);
+        const m = currentTotalMin % 60;
+        
+        const hStr = h.toString().padStart(2, '0');
+        const mStr = m.toString().padStart(2, '0');
+        slots.push(`${hStr}:${mStr}`);
+        
+        currentTotalMin += slotDuration;
+      }
+      
+      return slots;
+    },
     filteredBookings() {
-      return this.bookings.filter(b => {
-        const clubMatch = b.clubId === this.selectedClubId;
+      return this.rawBookings.filter(b => {
         const statusMatch = this.statusFilter === 'all' || b.status === this.statusFilter;
-        return clubMatch && statusMatch;
+        return statusMatch; // Đã filter theo club ở backend rồi
       });
     }
   },
+  watch: {
+    selectedClubId(newVal) {
+      if (newVal) {
+        this.fetchBookings();
+        this.updateCourtsDropdown();
+      }
+    },
+    currentDate() {
+      this.fetchBookings();
+    }
+  },
+  async mounted() {
+    await this.fetchClubs();
+  },
   methods: {
+    async fetchClubs() {
+      try {
+        const response = await dashboardService.getClubs();
+        if (response.success && response.data.length > 0) {
+          this.clubs = response.data;
+          this.selectedClubId = response.data[0].id;
+          this.updateCourtsDropdown();
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách CLB:", error);
+      }
+    },
+    updateCourtsDropdown() {
+      const selectedClub = this.clubs.find(c => c.id === this.selectedClubId);
+      if (selectedClub && selectedClub.courts) {
+        this.courts = selectedClub.courts.map(c => ({
+          ...c,
+          type: c.sportType || 'Sân'
+        }));
+      } else {
+        this.courts = [];
+      }
+    },
+    async fetchBookings() {
+      if (!this.selectedClubId) return;
+      this.isLoading = true;
+      try {
+        // format ISO date part "YYYY-MM-DD"
+        const dateStr = this.currentDate.toISOString().split('T')[0];
+        const response = await bookingService.getBookingsByClub(this.selectedClubId, dateStr);
+        if (response.success) {
+          const raw = response.data || [];
+          
+          const formatted = [];
+          for (const booking of raw) {
+            // parse items
+            for (const item of booking.items) {
+              const start = new Date(item.timeSlot.startTime);
+              const end = new Date(item.timeSlot.endTime);
+              
+              const st = start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+              const et = end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+              
+              formatted.push({
+                id: booking.id,
+                clubId: booking.court.clubId,
+                courtId: booking.court.id,
+                courtName: booking.court.name,
+                customerName: booking.bookerName || booking.user?.fullName || 'Khách vãng lai',
+                phone: booking.bookerPhone || booking.user?.phone || 'N/A',
+                startTime: st,
+                endTime: et,
+                date: start.toLocaleDateString('vi-VN'),
+                amount: item.price,
+                status: booking.status
+              });
+            }
+          }
+          this.rawBookings = formatted;
+        }
+      } catch (error) {
+        console.error("Lỗi tải bản ghi booking:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    // thong bao xac nhan da nhan tien chuyen khoan hay tien mat
+    async handleConfirmPayment(bookingId) {
+      if(!confirm("Bạn có chắc chắn muốn xác nhận thanh toán?")) return;
+      try {
+        const response = await bookingService.confirmPayment(bookingId);
+        if(response.success){
+          alert("Xác nhận thanh toán thành công");
+          this.fetchBookings(); // recall 
+        }
+      } catch (error) {
+        alert(error.response?.data?.message || "Xác nhận thanh toán thất bại");
+      }
+    },
+    // huy dat san
+    async handleCancelBooking(bookingId) {
+      if(!confirm("Bạn có chắc chắn muốn hủy đặt sân?")) return;
+      try {
+        const response = await bookingService.updateStatus(bookingId, 'CANCELLED');
+        if(response.success){
+          alert("Hủy đặt sân thành công");
+          this.fetchBookings(); // recall 
+        }
+      } catch (error) {
+        alert(error.response?.data?.message || "Hủy đặt sân thất bại");
+      }
+    },
+    // ham danh dau khach da choi xong
+    async handleCompleteBooking(bookingId) {
+      if(!confirm("Khách đã chơi xong chưa?")) return;
+      try {
+        const response = await bookingService.updateStatus(bookingId, 'COMPLETED');
+        if(response.success){
+          alert("Đã đánh dấu đã chơi xong");
+          this.fetchBookings(); // recall 
+        }
+      } catch (error) {
+        alert(error.response?.data?.message || "Thất bại");
+      }
+    },
     getBooking(courtId, startTime) {
-      return this.bookings.find(b => b.courtId === courtId && b.startTime === startTime);
+      return this.rawBookings.find(b => b.courtId === courtId && b.startTime === startTime);
     },
     getBookingStyle(booking) {
-      // Logic for multi-slot bookings could go here
       return {};
     },
     getStatusLabel(status) {
@@ -285,8 +396,7 @@ export default {
       this.currentDate = d;
     },
     refreshData() {
-      // Simulate API call
-      console.log('Refreshing bookings...');
+      this.fetchBookings();
     }
   }
 }
@@ -470,10 +580,11 @@ export default {
 .time-column {
   width: 100px;
   flex-shrink: 0;
-  border-right: 1px solid #f1f5f9;
+  border-right: 1px solid #e2e8f0;
 }
 
 .time-header {
+  box-sizing: border-box;
   height: 60px;
   display: flex;
   align-items: center;
@@ -482,10 +593,11 @@ export default {
   font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .time-slot {
+  box-sizing: border-box;
   height: 80px;
   display: flex;
   align-items: center;
@@ -494,7 +606,7 @@ export default {
   font-size: 15px;
   font-weight: 700;
   color: #475569;
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .court-columns-container {
@@ -508,16 +620,17 @@ export default {
 .court-column {
   flex: 1;
   min-width: 180px;
-  border-right: 1px solid #f1f5f9;
+  border-right: 1px solid #e2e8f0;
 }
 
 .court-header {
+  box-sizing: border-box;
   height: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
   background: #fcfdfe;
 }
 
@@ -539,8 +652,9 @@ export default {
 }
 
 .slot-cell {
+  box-sizing: border-box;
   height: 80px;
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
   padding: 4px;
   background: #ffffff;
   transition: background 0.2s;

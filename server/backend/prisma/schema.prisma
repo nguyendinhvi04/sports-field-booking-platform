@@ -220,6 +220,7 @@ model Club {
   coverImageUrl  String?
   approvalStatus ApprovalStatus @default(PENDING)
   isActive       Boolean        @default(true)
+  slotDuration   Int            @default(60) // Thời lượng mỗi slot tính bằng phút (VD: 30, 60, 90)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 

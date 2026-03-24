@@ -1,8 +1,33 @@
 import { NextRequest } from "next/server";
 import { getAuthUser, requireRole } from "@/middlewares/auth.middleware";
-import { createCourt } from "@/services/court.service";
+import { createCourt, getCourtsByClubId } from "@/services/court.service";
 import { createCourtSchema } from "@/validations/court.schema";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
+
+/**
+ * GET /api/owner/clubs/[clubId]/courts
+ * Lấy danh sách các sân của một câu lạc bộ cụ thể
+ */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ clubId: string }> }
+) {
+  try {
+    const { user, error } = await getAuthUser(req);
+    if (error) return error;
+
+    const roleErr = requireRole(user, ["OWNER", "ADMIN"]);
+    if (roleErr) return roleErr;
+
+    const { clubId } = await params;
+    
+    // Ở đây ta có thể kiểm tra quyền sở hữu tương tự POST
+    const courts = await getCourtsByClubId(clubId);
+    return successResponse("Lấy danh sách sân thành công", courts);
+  } catch (error: unknown) {
+    return serverErrorResponse(error);
+  }
+}
 
 /**
  * POST /api/owner/clubs/[clubId]/courts
@@ -32,14 +57,13 @@ export async function POST(
       );
     }
 
-    // TODO: Kiểm tra xem user có phải chủ của club này không?
-    // Giả sử service sẽ ném lỗi nếu không tìm thấy clubId hoặc không có quyền truy cập sâu hơn nếu cần
-    
-    const court = await createCourt(clubId, parsed.data);
+    const court = await createCourt(clubId, user.userId, parsed.data);
 
     return successResponse("Thêm sân mới thành công", court, 201);
   } catch (error: unknown) {
-    console.error("POST Create Court Error:", error);
+    if (error instanceof Error && error.message === "CLUB_NOT_FOUND_OR_UNAUTHORIZED") {
+      return errorResponse("Bạn không có quyền thực hiện thao tác này trên câu lạc bộ được chọn", 403);
+    }
     return serverErrorResponse(error);
   }
 }

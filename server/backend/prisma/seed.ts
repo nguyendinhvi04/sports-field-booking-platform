@@ -372,6 +372,96 @@ async function main() {
     },
   });
 
+  // 8. Seed Bookings
+  console.log("📅 Creating bookings...");
+  const court1Slots = await prisma.timeSlot.findMany({
+    where: { courtId: court1.id, startTime: { gte: today, lt: tomorrow } },
+    orderBy: { startTime: 'asc' }
+  });
+
+  const courtF2Slots = await prisma.timeSlot.findMany({
+    where: { courtId: courtF2.id, startTime: { gte: today, lt: tomorrow } },
+    orderBy: { startTime: 'asc' }
+  });
+
+  if (court1Slots.length > 2) {
+    await prisma.booking.create({
+      data: {
+        userId: user1.id,
+        courtId: court1.id,
+        status: "CONFIRMED",
+        totalAmount: 200000,
+        finalAmount: 200000,
+        bookerName: "Nguyễn Văn Người Chơi",
+        bookerPhone: "0933333333",
+        items: {
+          create: [{ timeSlotId: court1Slots[2].id, price: 200000 }]
+        }
+      }
+    });
+    await prisma.timeSlot.update({ where: { id: court1Slots[2].id }, data: { status: "BOOKED" }});
+  }
+
+  if (court1Slots.length > 4) {
+    await prisma.booking.create({
+      data: {
+        userId: user2.id,
+        courtId: court1.id,
+        status: "PENDING",
+        totalAmount: 200000,
+        finalAmount: 200000,
+        bookerName: "Phạm Thị Khách Hàng",
+        bookerPhone: "0944444444",
+        items: {
+          create: [{ timeSlotId: court1Slots[4].id, price: 200000 }]
+        }
+      }
+    });
+    await prisma.timeSlot.update({ where: { id: court1Slots[4].id }, data: { status: "LOCKED" }});
+  }
+
+  if (courtF2Slots.length > 12) {
+    await prisma.booking.create({
+      data: {
+        userId: user1.id,
+        courtId: courtF2.id,
+        status: "COMPLETED",
+        totalAmount: 800000,
+        finalAmount: 800000,
+        bookerName: "Khách Vãng Lai VIP",
+        bookerPhone: "0999999999",
+        items: {
+          create: [{ timeSlotId: courtF2Slots[12].id, price: 800000 }]
+        }
+      }
+    });
+    await prisma.timeSlot.update({ where: { id: courtF2Slots[12].id }, data: { status: "BOOKED" }});
+  }
+
+  // Mock for court 2 (Badminton)
+  const court2Slots = await prisma.timeSlot.findMany({
+    where: { courtId: court2.id, startTime: { gte: today, lt: tomorrow } },
+    orderBy: { startTime: 'asc' }
+  });
+
+  if (court2Slots.length > 13) {
+    await prisma.booking.create({
+      data: {
+        userId: user2.id,
+        courtId: court2.id,
+        status: "CONFIRMED",
+        totalAmount: 90000,
+        finalAmount: 90000,
+        bookerName: "Lê Văn Thể Lực",
+        bookerPhone: "0988888888",
+        items: {
+          create: [{ timeSlotId: court2Slots[13].id, price: 90000 }] // 19:00
+        }
+      }
+    });
+    await prisma.timeSlot.update({ where: { id: court2Slots[13].id }, data: { status: "BOOKED" }});
+  }
+
   console.log("✅ Seed completed successfully!");
 }
 

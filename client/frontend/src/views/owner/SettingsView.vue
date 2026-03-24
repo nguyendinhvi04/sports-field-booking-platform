@@ -8,9 +8,9 @@
       </div>
       <div class="header-actions">
         <!-- KYC status badge -->
-        <div class="kyc-status-badge" :class="isVerified ? 'verified' : 'pending'">
-          <span class="material-icons">{{ isVerified ? 'verified_user' : 'pending_actions' }}</span>
-          <span>{{ isVerified ? 'Hồ sơ đã xác minh' : 'Hồ sơ chưa hoàn thiện' }}</span>
+        <div class="kyc-status-badge" :class="kycStatusClass">
+          <span class="material-icons">{{ kycStatusIcon }}</span>
+          <span>{{ kycStatusLabel }}</span>
         </div>
         <button class="save-btn" @click="saveChanges">
           <span class="material-icons">save</span>
@@ -364,8 +364,29 @@ import { useOwnerTrial } from '@/composables/useOwnerTrial.js';
 export default {
   name: 'OwnerSettingsView',
   setup() {
-    const { isVerified } = useOwnerTrial();
-    return { isVerified };
+    const { isVerified, kycStatus, isPendingReview, isKycApproved, isKycRejected, refreshStatus, syncUser } = useOwnerTrial();
+    return { isVerified, kycStatus, isPendingReview, isKycApproved, isKycRejected, refreshStatus, syncUser };
+  },
+  computed: {
+    kycStatusClass() {
+      if (this.isKycApproved) return 'verified';
+      if (this.isPendingReview) return 'pending';
+      if (this.isKycRejected) return 'rejected';
+      return 'pending'; 
+    },
+    kycStatusIcon() {
+      if (this.isKycApproved) return 'verified_user';
+      if (this.isPendingReview) return 'pending_actions';
+      if (this.isKycRejected) return 'cancel';
+      return 'help_outline';
+    },
+    kycStatusLabel() {
+      if (this.isKycApproved) return 'Hồ sơ đã xác minh';
+      if (this.isPendingReview) return 'Đang chờ xét duyệt';
+      if (this.isKycRejected) return 'Hồ sơ bị từ chối';
+      if (!this.isVerified) return 'Hồ sơ chưa hoàn thiện';
+      return 'Hồ sơ đã nộp';
+    }
   },
   data() {
     const user = (() => { try { return JSON.parse(localStorage.getItem('user')) || {}; } catch { return {}; } })();
@@ -433,6 +454,17 @@ export default {
           this.kyc.taxCode = data.ownerProfile.taxCode || '';
           this.kyc.cancellationPolicy = data.ownerProfile.cancellationPolicy || '';
         }
+
+        // Cập nhật localStorage để đồng bộ Layout & Badge
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const updatedUser = {
+          ...currentUser,
+          isVerified: data.isVerified,
+          kycStatus: data.ownerProfile?.kycStatus || null
+        };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        this.syncUser(); // Gọi từ useOwnerTrial()
+
       } catch (e) {
         // Nếu lỗi (chưa có profile) thì bỏ qua, dùng dữ liệu từ localStorage
         console.warn('Không load được profile từ API:', e?.response?.status);

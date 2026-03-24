@@ -28,11 +28,11 @@
 
     <!-- Sidebar Footer: Trạng thái hồ sơ -->
     <div class="sidebar-footer">
-      <router-link to="/owner/settings" class="profile-status" :class="{ locked: isLocked, verified: !isLocked }">
-        <span class="material-icons">{{ isLocked ? 'warning_amber' : 'verified_user' }}</span>
+      <router-link to="/owner/settings" class="profile-status" :class="{ locked: isLocked, verified: isKycApproved, trial: !isLocked && !isKycApproved }">
+        <span class="material-icons">{{ isKycApproved ? 'verified_user' : (isLocked ? 'warning_amber' : 'timer') }}</span>
         <div class="status-text" v-if="!isCollapsed">
-          <p class="status-title">{{ isLocked ? 'Hồ sơ chưa đầy đủ' : 'Đã xác minh' }}</p>
-          <p class="status-sub">{{ isLocked ? 'Nhấn để cập nhật' : 'Tài khoản hoạt động' }}</p>
+          <p class="status-title">{{ isKycApproved ? 'Đã xác minh' : (isLocked ? 'Hồ sơ chưa đầy đủ' : 'Đang dùng thử') }}</p>
+          <p class="status-sub">{{ isKycApproved ? 'Tài khoản hoạt động' : (isLocked ? 'Nhấn để cập nhật' : 'Hạn chế sau 5 phút') }}</p>
         </div>
       </router-link>
       <button class="logout-btn" @click="logout">
@@ -49,6 +49,10 @@ export default {
   props: {
     isCollapsed: Boolean,
     isLocked: {
+      type: Boolean,
+      default: false
+    },
+    isKycApproved: {
       type: Boolean,
       default: false
     }
@@ -185,6 +189,10 @@ export default {
 
 .profile-status.verified {
   background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;
+}
+
+.profile-status.trial {
+  background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;
 }
 
 .profile-status .material-icons { font-size: 22px; flex-shrink: 0; }

@@ -139,6 +139,7 @@ export async function getMyProfile(userId: string) {
       avatarUrl: true,
       role: true,
       isEmailVerified: true,
+      isVerified: true,
       createdAt: true,
       profile: {
         select: {

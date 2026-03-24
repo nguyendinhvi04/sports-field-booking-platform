@@ -1,6 +1,6 @@
 <template>
   <div class="owner-layout">
-    <OwnerSidebar :is-collapsed="isSidebarCollapsed" :is-locked="isLocked" />
+    <OwnerSidebar :is-collapsed="isSidebarCollapsed" :is-locked="isLocked" :is-kyc-approved="isKycApproved" />
     <div class="main-wrapper" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
       <OwnerHeader @toggle-sidebar="isSidebarCollapsed = !isSidebarCollapsed" />
       
@@ -71,12 +71,15 @@ export default {
     OwnerHeader
   },
   setup() {
-    const { isLocked, isVerified, isKycApproved, isPendingReview, isKycRejected, isTrialExpired, timeLeftFormatted, trialPercent, startTrial } = useOwnerTrial();
+    const { isLocked, isVerified, isKycApproved, isPendingReview, isKycRejected, isTrialExpired, timeLeftFormatted, trialPercent, startTrial, refreshStatus } = useOwnerTrial();
+
+    // Đồng bộ ngay lập tức
+    refreshStatus();
 
     // Cung cấp isLocked cho mọi component con (Vue provide/inject)
     provide('isLocked', isLocked);
 
-    return { isLocked, isVerified, isKycApproved, isPendingReview, isKycRejected, isTrialExpired, timeLeftFormatted, trialPercent, startTrial };
+    return { isLocked, isVerified, isKycApproved, isPendingReview, isKycRejected, isTrialExpired, timeLeftFormatted, trialPercent, startTrial, refreshStatus };
   },
   data() {
     return {
@@ -86,6 +89,8 @@ export default {
   mounted() {
     // Khởi động timer ngay khi vào Dashboard
     this.startTrial();
+    // Đồng bộ trạng thái mới nhất từ backend
+    this.refreshStatus();
   }
 }
 </script>

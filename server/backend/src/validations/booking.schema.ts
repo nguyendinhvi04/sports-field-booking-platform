@@ -26,6 +26,8 @@ export const createBookingSchema = z.object({
   note: z.string().max(500, "Ghi chú không quá 500 ký tự").optional(),
 
   voucherCode: z.string().optional(),
+
+  paymentMethod: z.enum(["BANK_TRANSFER", "CREDIT_CARD", "MOMO", "VNPAY", "CASH"]).default("VNPAY"),
 });
 
 export const cancelBookingSchema = z.object({

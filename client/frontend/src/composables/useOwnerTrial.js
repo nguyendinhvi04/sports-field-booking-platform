@@ -11,7 +11,8 @@
  *   isKycApproved = Admin đã DUYỆT hồ sơ (kycStatus: APPROVED) → mở khóa dashboard
  */
 
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
+import api from '../api/axios';
 
 const TRIAL_DURATION_MS = 5 * 60 * 1000; // 5 phút
 const TRIAL_START_KEY = 'owner_trial_start';
@@ -19,43 +20,36 @@ const TRIAL_START_KEY = 'owner_trial_start';
 // State singleton dùng chung toàn app
 const timeLeft = ref(TRIAL_DURATION_MS);
 const isTrialExpired = ref(false);
+const user = ref(JSON.parse(localStorage.getItem('user')) || null);
 let timer = null;
 
 export function useOwnerTrial() {
-  // Lấy user từ localStorage (reactive mỗi lần computed chạy)
-  const user = computed(() => {
-    try {
-      return JSON.parse(localStorage.getItem('user')) || null;
-    } catch {
-      return null;
-    }
-  });
 
-  // kycStatus từ backend: null | 'PENDING' | 'APPROVED' | 'REJECTED'
+  // Sync user from localStorage whenever called (simple reactivity)
+  function syncUser() {
+    user.value = JSON.parse(localStorage.getItem('user')) || null;
+  }
+
+  // kycStatus: null | 'PENDING' | 'APPROVED' | 'REJECTED'
   const kycStatus = computed(() => user.value?.kycStatus ?? null);
 
-  // Admin đã duyệt → mở khóa hoàn toàn
+  // Status flags
   const isKycApproved = computed(() => kycStatus.value === 'APPROVED');
-
-  // Đã nộp hồ sơ nhưng đang chờ duyệt
   const isPendingReview = computed(() => kycStatus.value === 'PENDING');
-
-  // Bị từ chối, cần nộp lại
   const isKycRejected = computed(() => kycStatus.value === 'REJECTED');
-
-  // isVerified (legacy): dùng cho UI badge "đã nộp hồ sơ"
-  const isVerified = computed(() => user.value?.isVerified === true);
-
+  
   // 🔒 Chỉ bị khóa khi trial hết VÀ Admin chưa approve
-  const isLocked = computed(() => !isKycApproved.value && isTrialExpired.value);
+  const isLocked = computed(() => {
+    if (isKycApproved.value) return false;
+    return isTrialExpired.value;
+  });
 
-  // Phần trăm thời gian còn lại
+  // Percent & Formatted Time
   const trialPercent = computed(() => {
     if (isKycApproved.value) return 100;
     return Math.max(0, Math.round((timeLeft.value / TRIAL_DURATION_MS) * 100));
   });
 
-  // Format "4:59"
   const timeLeftFormatted = computed(() => {
     if (isKycApproved.value) return null;
     const min = Math.floor(timeLeft.value / 60000);
@@ -63,9 +57,38 @@ export function useOwnerTrial() {
     return `${min}:${sec.toString().padStart(2, '0')}`;
   });
 
+  // Action: Cập nhật kycStatus từ backend (gọi khi mount layout)
+  async function refreshStatus() {
+    try {
+      const response = await api.get('/auth/profile');
+      const data = response.data;
+      
+      if (data.success && data.data) {
+        const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+        const updatedUser = { 
+          ...currentUser, 
+          kycStatus: data.data.ownerProfile?.kycStatus ?? null,
+          isVerified: data.data.isVerified
+        };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        syncUser();
+        
+        // Nếu đã được duyệt, dừng trial luôn
+        if (updatedUser.kycStatus === 'APPROVED') {
+          stopTimer();
+        }
+      }
+    } catch (err) {
+      console.error("Failed to refresh owner status:", err);
+    }
+  }
+
   function startTrial() {
-    // Đã được Admin approve thì không cần timer
-    if (isKycApproved.value) return;
+    if (isKycApproved.value) {
+      isTrialExpired.value = false;
+      timeLeft.value = TRIAL_DURATION_MS;
+      return;
+    }
 
     if (!localStorage.getItem(TRIAL_START_KEY)) {
       localStorage.setItem(TRIAL_START_KEY, Date.now().toString());
@@ -81,7 +104,6 @@ export function useOwnerTrial() {
     }
 
     timeLeft.value = TRIAL_DURATION_MS - elapsed;
-
     if (timer) clearInterval(timer);
 
     timer = setInterval(() => {
@@ -97,29 +119,34 @@ export function useOwnerTrial() {
     }, 1000);
   }
 
+  function stopTimer() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+
   function resetTrial() {
     localStorage.removeItem(TRIAL_START_KEY);
     timeLeft.value = TRIAL_DURATION_MS;
     isTrialExpired.value = false;
-    if (timer) { clearInterval(timer); timer = null; }
+    stopTimer();
   }
 
-  onUnmounted(() => {
-    // Không dừng timer khi unmount (singleton), chỉ cleanup nếu cần
-  });
+  const isVerified = computed(() => user.value?.isVerified === true);
 
   return {
     isLocked,
-    isVerified,      // đã nộp hồ sơ (isVerified = true khi kycStatus PENDING+)
-    isKycApproved,   // Admin đã duyệt → dashboard mở khóa
-    isPendingReview, // đang chờ Admin duyệt
-    isKycRejected,   // bị từ chối
-    kycStatus,       // raw: null | 'PENDING' | 'APPROVED' | 'REJECTED'
+    isVerified,
+    isKycApproved,
+    isPendingReview,
+    isKycRejected,
+    kycStatus,
     isTrialExpired,
-    timeLeft,
     timeLeftFormatted,
     trialPercent,
     startTrial,
+    refreshStatus,
     resetTrial,
   };
 }
