@@ -4,19 +4,189 @@
     <div class="view-header">
       <div class="header-info">
         <h1 class="view-title">Quản lý Câu lạc bộ</h1>
-        <p class="view-subtitle">Danh sách các cơ sở thể thao do bạn làm chủ.</p>
+        <p class="view-subtitle">
+          Danh sách các cơ sở thể thao do bạn làm chủ.
+        </p>
       </div>
-      <button class="add-btn" @click="showAddModal = true">
+      <button
+        class="add-btn"
+        @click="showAddModal = true"
+        data-bs-toggle="modal"
+        data-bs-target="#addClubModal"
+      >
         <span class="material-icons">add_circle</span>
         <span>Thêm câu lạc bộ mới</span>
       </button>
+    </div>
+
+    <!-- Model thêm mới câu lạc bộ -->
+    <div
+      class="modal fade"
+      id="addClubModal"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">
+              Thêm mới câu lạc bộ
+            </h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="addClubForm">
+              <div class="row">
+                <!-- Club ID -->
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Mã CLB</label>
+                  <input
+                    v-model="addClub.clubId"
+                    type="text"
+                    class="form-control"
+                    name="clubId"
+                    placeholder="CLB-001"
+                  />
+                </div>
+
+                <!-- Name -->
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Tên CLB</label>
+                  <input
+                    v-model="addClub.name"
+                    type="text"
+                    class="form-control"
+                    name="name"
+                    placeholder="Sân bóng Thành Phát..."
+                  />
+                </div>
+
+                <!-- Address -->
+                <div class="col-12 mb-3">
+                  <label class="form-label">Địa chỉ</label>
+                  <input
+                    v-model="addClub.address"
+                    type="text"
+                    class="form-control"
+                    name="address"
+                    placeholder="123 Phạm Hùng..."
+                  />
+                </div>
+
+                <!-- Image -->
+                <div class="col-12 mb-3">
+                  <label class="form-label">Link hình ảnh</label>
+                  <input
+                    v-model="addClub.image"
+                    type="text"
+                    class="form-control"
+                    name="image"
+                  />
+                </div>
+
+                <!-- Status -->
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Trạng thái</label>
+                  <select
+                    v-model="addClub.status"
+                    class="form-select"
+                    name="status"
+                  >
+                    <option value="active">Đang hoạt động</option>
+                    <option value="inactive">Tạm ngưng</option>
+                    <option value="pending">Chờ duyệt</option>
+                  </select>
+                </div>
+
+                <!-- Open Time -->
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Giờ mở cửa</label>
+                  <input
+                    v-model="addClub.openTime"
+                    type="time"
+                    class="form-control"
+                    name="openTime"
+                  />
+                </div>
+
+                <!-- Close Time -->
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Giờ đóng cửa</label>
+                  <input
+                    v-model="addClub.closeTime"
+                    type="time"
+                    class="form-control"
+                    name="closeTime"
+                  />
+                </div>
+
+                <!-- Total Courts -->
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Số sân</label>
+                  <input
+                    v-model="addClub.totalCourts"
+                    type="number"
+                    class="form-control"
+                    name="totalCourts"
+                  />
+                </div>
+
+                <!-- Rating -->
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Rating</label>
+                  <input
+                    v-model="addClub.rating"
+                    type="number"
+                    step="0.1"
+                    class="form-control"
+                    name="rating"
+                  />
+                </div>
+
+                <!-- Review Count -->
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Số đánh giá</label>
+                  <input
+                    v-model="addClub.reviewCount"
+                    type="number"
+                    class="form-control"
+                    name="reviewCount"
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" v-on:click="addClub">
+              Save changes
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Filter/Search Bar (Optional but good) -->
     <div class="search-bar">
       <div class="input-wrap">
         <span class="material-icons search-icon">search</span>
-        <input type="text" v-model="searchQuery" placeholder="Tìm kiếm theo tên hoặc địa chỉ..." />
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Tìm kiếm theo tên hoặc địa chỉ..."
+        />
       </div>
       <div class="filter-group">
         <select v-model="statusFilter">
@@ -30,7 +200,12 @@
 
     <!-- Clubs Grid -->
     <div class="clubs-grid" v-if="filteredClubs.length > 0">
-      <div v-for="(club, i) in filteredClubs" :key="club.id" class="club-card" :style="`--delay: ${i * 100}ms`">
+      <div
+        v-for="(club, i) in filteredClubs"
+        :key="club.id"
+        class="club-card"
+        :style="`--delay: ${i * 100}ms`"
+      >
         <div class="club-image">
           <img :src="club.image" :alt="club.name" />
           <div class="status-badge" :class="club.status">
@@ -42,7 +217,7 @@
             </button>
           </div>
         </div>
-        
+
         <div class="club-details">
           <div class="club-main">
             <h3 class="club-name">{{ club.name }}</h3>
@@ -56,7 +231,9 @@
 
           <div class="info-row">
             <span class="material-icons info-icon">schedule</span>
-            <span class="info-text">Giờ mở cửa: {{ club.openTime }} - {{ club.closeTime }}</span>
+            <span class="info-text"
+              >Giờ mở cửa: {{ club.openTime }} - {{ club.closeTime }}</span
+            >
           </div>
 
           <div class="club-stats">
@@ -74,11 +251,175 @@
           </div>
 
           <div class="club-actions">
-            <router-link :to="`/owner/clubs/${club.id}/edit`" class="btn-action edit">
-              <span class="material-icons">edit</span>
-              <span>Chỉnh sửa</span>
-            </router-link>
-            <router-link :to="`/owner/courts?clubId=${club.id}`" class="btn-action manage">
+            <span class="material-icons btn-action edit" data-bs-toggle="modal"
+        data-bs-target="#addClubModal">edit</span>
+            <!-- Model edit câu lạc bộ -->
+            <div
+              class="modal fade"
+              id="addClubModal"
+              tabindex="-1"
+              aria-labelledby="exampleModalLabel"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">
+                      Chỉnh sửa câu lạc bộ
+                    </h1>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                    ></button>
+                  </div>
+                  <div class="modal-body">
+                    <form id="addClubForm">
+                      <div class="row">
+                        <!-- Club ID -->
+                        <div class="col-md-6 mb-3">
+                          <label class="form-label">Mã CLB</label>
+                          <input
+                            v-model="edit_Club.clubId"
+                            type="text"
+                            class="form-control"
+                            name="clubId"
+                            placeholder="CLB-001"
+                          />
+                        </div>
+
+                        <!-- Name -->
+                        <div class="col-md-6 mb-3">
+                          <label class="form-label">Tên CLB</label>
+                          <input
+                            v-model="edit_Club.name"
+                            type="text"
+                            class="form-control"
+                            name="name"
+                            placeholder="Sân bóng Thành Phát..."
+                          />
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-12 mb-3">
+                          <label class="form-label">Địa chỉ</label>
+                          <input
+                            v-model="edit_Club.address"
+                            type="text"
+                            class="form-control"
+                            name="address"
+                            placeholder="123 Phạm Hùng..."
+                          />
+                        </div>
+
+                        <!-- Image -->
+                        <div class="col-12 mb-3">
+                          <label class="form-label">Link hình ảnh</label>
+                          <input
+                            v-model="edit_Club.image"
+                            type="text"
+                            class="form-control"
+                            name="image"
+                          />
+                        </div>
+
+                        <!-- Status -->
+                        <div class="col-md-4 mb-3">
+                          <label class="form-label">Trạng thái</label>
+                          <select
+                            v-model="edit_Club.status"
+                            class="form-select"
+                            name="status"
+                          >
+                            <option value="active">Đang hoạt động</option>
+                            <option value="inactive">Tạm ngưng</option>
+                            <option value="pending">Chờ duyệt</option>
+                          </select>
+                        </div>
+
+                        <!-- Open Time -->
+                        <div class="col-md-4 mb-3">
+                          <label class="form-label">Giờ mở cửa</label>
+                          <input
+                            v-model="edit_Club.openTime"
+                            type="time"
+                            class="form-control"
+                            name="openTime"
+                          />
+                        </div>
+
+                        <!-- Close Time -->
+                        <div class="col-md-4 mb-3">
+                          <label class="form-label">Giờ đóng cửa</label>
+                          <input
+                            v-model="edit_Club.closeTime"
+                            type="time"
+                            class="form-control"
+                            name="closeTime"
+                          />
+                        </div>
+
+                        <!-- Total Courts -->
+                        <div class="col-md-4 mb-3">
+                          <label class="form-label">Số sân</label>
+                          <input
+                            v-model="edit_Club.totalCourts"
+                            type="number"
+                            class="form-control"
+                            name="totalCourts"
+                          />
+                        </div>
+
+                        <!-- Rating -->
+                        <div class="col-md-4 mb-3">
+                          <label class="form-label">Rating</label>
+                          <input
+                            v-model="edit_Club.rating"
+                            type="number"
+                            step="0.1"
+                            class="form-control"
+                            name="rating"
+                          />
+                        </div>
+
+                        <!-- Review Count -->
+                        <div class="col-md-4 mb-3">
+                          <label class="form-label">Số đánh giá</label>
+                          <input
+                            v-model="edit_Club.reviewCount"
+                            type="number"
+                            class="form-control"
+                            name="reviewCount"
+                          />
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal"
+                    >
+                      Close
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      v-on:click="addClub"
+                    >
+                      Save changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <router-link
+              :to="`/owner/courts?clubId=${club.id}`"
+              class="btn-action manage"
+            >
               <span class="material-icons">sports_soccer</span>
               <span>Quản lý sân</span>
             </router-link>
@@ -104,91 +445,162 @@
 
 <script>
 export default {
-  name: 'OwnerClubsView',
+  name: "OwnerClubsView",
   data() {
     return {
-      searchQuery: '',
-      statusFilter: 'all',
+      searchQuery: "",
+      statusFilter: "all",
       showAddModal: false,
+      edit_Club: {},
+      add_Club: {
+        clubId: "",
+        name: "",
+        address: "",
+        image: "",
+        status: "active",
+        openTime: "",
+        closeTime: "",
+        totalCourts: 0,
+        rating: 0,
+        reviewCount: 0,
+      },
       clubs: [
         {
           id: 1,
-          clubId: 'CLB-001',
-          name: 'Sân bóng Thành Phát',
-          address: '123 Phạm Hùng, Cầu Giấy, Hà Nội',
-          image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=600',
-          status: 'active',
-          openTime: '06:00',
-          closeTime: '23:00',
+          clubId: "CLB-001",
+          name: "Sân bóng Thành Phát",
+          address: "123 Phạm Hùng, Cầu Giấy, Hà Nội",
+          image:
+            "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=600",
+          status: "active",
+          openTime: "06:00",
+          closeTime: "23:00",
           totalCourts: 6,
           rating: 4.8,
-          reviewCount: 382
+          reviewCount: 382,
         },
         {
           id: 2,
-          clubId: 'CLB-002',
-          name: 'Viettel Sports Center',
-          address: 'Ngõ 155 Trường Chinh, Thanh Xuân, Hà Nội',
-          image: 'https://images.unsplash.com/photo-1459865264687-595d654dfbb5?auto=format&fit=crop&q=80&w=600',
-          status: 'active',
-          openTime: '05:00',
-          closeTime: '22:00',
+          clubId: "CLB-002",
+          name: "Viettel Sports Center",
+          address: "Ngõ 155 Trường Chinh, Thanh Xuân, Hà Nội",
+          image:
+            "https://images.unsplash.com/photo-1459865264687-595d654dfbb5?auto=format&fit=crop&q=80&w=600",
+          status: "active",
+          openTime: "05:00",
+          closeTime: "22:00",
           totalCourts: 12,
           rating: 4.9,
-          reviewCount: 1540
+          reviewCount: 1540,
         },
         {
           id: 3,
-          clubId: 'CLB-003',
-          name: 'Sân bóng Chu Văn An',
-          address: 'Tây Hồ, Hà Nội (Đang sửa chữa)',
-          image: 'https://images.unsplash.com/photo-1529900748604-07564d024be1?auto=format&fit=crop&q=80&w=600',
-          status: 'inactive',
-          openTime: '06:00',
-          closeTime: '22:30',
+          clubId: "CLB-003",
+          name: "Sân bóng Chu Văn An",
+          address: "Tây Hồ, Hà Nội (Đang sửa chữa)",
+          image:
+            "https://images.unsplash.com/photo-1529900748604-07564d024be1?auto=format&fit=crop&q=80&w=600",
+          status: "inactive",
+          openTime: "06:00",
+          closeTime: "22:30",
           totalCourts: 4,
           rating: 4.5,
-          reviewCount: 89
-        }
-      ]
-    }
+          reviewCount: 89,
+        },
+      ],
+    };
   },
   computed: {
     filteredClubs() {
-      return this.clubs.filter(club => {
-        const matchesSearch = club.name.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
-                             club.address.toLowerCase().includes(this.searchQuery.toLowerCase());
-        const matchesStatus = this.statusFilter === 'all' || club.status === this.statusFilter;
+      return this.clubs.filter((club) => {
+        const matchesSearch =
+          club.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          club.address.toLowerCase().includes(this.searchQuery.toLowerCase());
+        const matchesStatus =
+          this.statusFilter === "all" || club.status === this.statusFilter;
         return matchesSearch && matchesStatus;
       });
-    }
+    },
+  },
+  mounted() {
+    this.Getallthedetails();
   },
   methods: {
     getStatusText(status) {
       const statuses = {
-        active: 'Đang hoạt động',
-        inactive: 'Tạm ngưng',
-        pending: 'Chờ duyệt'
+        active: "Đang hoạt động",
+        inactive: "Tạm ngưng",
+        pending: "Chờ duyệt",
       };
       return statuses[status] || status;
-    }
-  }
-}
+    },
+    //thêm mới câu lạc bộ
+    addClub() {
+      this.$router.push("/owner/clubs/${clubId}/amenities", this.add_Club);
+      then((response) => {
+        this.clubs.push(response.data.data); // Giả sử API trả về câu lạc bộ mới trong trường 'data'
+        this.clubs = {
+          id: Date.now(),
+          clubId: "",
+          name: "",
+          address: "",  
+          image: "",
+          status: "",
+          openTime: "",
+          closeTime: "",
+          totalCourts: "",
+          rating: "",
+          reviewCount: "",
+        };
+      }).catch((error) => {
+        console.error("Lỗi khi thêm câu lạc bộ:", error);
+      });
+    },
+    //lấy toàn bộ thông tin câu lạc bộ
+    Getallthedetails() {
+      this.$router.push("/owner/clubs/${clubId}", this.clubs);
+      then((response) => {
+        this.clubs = response.data.data; // Giả sử API trả về dữ liệu trong trường 'data'
+      }).catch((error) => {
+        console.error("Lỗi khi lấy thông tin câu lạc bộ:", error);
+      });
+    },
+    //chỉnh sửa câu lạc bộ
+    editClub(club) {
+      this.$router.push("/owner/clubs/${clubId}", this.edit_Club);
+      then((response) => {
+        const index = this.clubs.findIndex((c) => c.id === club.id);
+        if (index !== -1) {
+          this.clubs.splice(index, 1, response.data.data); // Cập nhật câu lạc bộ trong danh sách
+          this.Getallthedetails(); // Tải lại danh sách câu lạc bộ sau khi chỉnh sửa
+        }
+      }).catch((error) => {
+        console.error("Lỗi khi chỉnh sửa câu lạc bộ:", error);
+      });
+    },
+  },
+};
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap');
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap");
 
 .clubs-view {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: "Barlow Condensed", sans-serif;
   color: #0f1623;
   animation: fadeIn 0.5s ease-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .view-header {
@@ -199,7 +611,7 @@ export default {
 }
 
 .view-title {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: "Barlow Condensed", sans-serif;
   font-size: 28px;
   font-weight: 800;
   margin: 0 0 4px 0;
@@ -291,7 +703,7 @@ export default {
   border-radius: 20px;
   overflow: hidden;
   border: 1px solid #eaecf2;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeSlideUp 0.5s ease both;
   animation-delay: var(--delay, 0ms);
@@ -299,12 +711,18 @@ export default {
 
 .club-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
 }
 
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .club-image {
@@ -336,14 +754,26 @@ export default {
   backdrop-filter: blur(8px);
 }
 
-.status-badge.active { background: rgba(22, 163, 74, 0.9); color: white; }
-.status-badge.inactive { background: rgba(148, 163, 184, 0.9); color: white; }
-.status-badge.pending { background: rgba(245, 158, 11, 0.9); color: white; }
+.status-badge.active {
+  background: rgba(22, 163, 74, 0.9);
+  color: white;
+}
+.status-badge.inactive {
+  background: rgba(148, 163, 184, 0.9);
+  color: white;
+}
+.status-badge.pending {
+  background: rgba(245, 158, 11, 0.9);
+  color: white;
+}
 
 .image-overlay {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.2);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -351,14 +781,19 @@ export default {
   transition: opacity 0.3s;
 }
 
-.club-image:hover .image-overlay { opacity: 1; }
+.club-image:hover .image-overlay {
+  opacity: 1;
+}
 
 .overlay-btn {
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   border: none;
-  width: 44px; height: 44px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   color: #1a1a2e;
 }
@@ -369,11 +804,11 @@ export default {
 
 .club-main {
   margin-bottom: 20px;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: "Barlow Condensed", sans-serif;
 }
 
 .club-name {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: "Barlow Condensed", sans-serif;
   font-size: 20px;
   font-weight: 700;
   margin: 0 0 4px 0;
@@ -490,20 +925,36 @@ export default {
 }
 
 .empty-icon {
-  width: 80px; height: 80px;
+  width: 80px;
+  height: 80px;
   background: #f1f5f9;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
   margin-bottom: 24px;
 }
 
-.empty-icon span { font-size: 40px; color: #94a3b8; }
+.empty-icon span {
+  font-size: 40px;
+  color: #94a3b8;
+}
 
-.mt-20 { margin-top: 20px; }
+.mt-20 {
+  margin-top: 20px;
+}
 
 @media (max-width: 640px) {
-  .clubs-grid { grid-template-columns: 1fr; }
-  .view-header { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .search-bar { flex-direction: column; }
+  .clubs-grid {
+    grid-template-columns: 1fr;
+  }
+  .view-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .search-bar {
+    flex-direction: column;
+  }
 }
 </style>
