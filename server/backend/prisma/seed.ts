@@ -103,6 +103,8 @@ async function main() {
       address: "15 Thanh Đa",
       city: "Hồ Chí Minh",
       district: "Bình Thạnh",
+      logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=ThanhDa",
+      coverImageUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200",
       approvalStatus: "APPROVED",
       amenities: {
         create: [
@@ -128,6 +130,8 @@ async function main() {
       address: "100 Huỳnh Tấn Phát",
       city: "Hồ Chí Minh",
       district: "Quận 7",
+      logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=Q7Pro",
+      coverImageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=1200",
       approvalStatus: "APPROVED",
       amenities: {
         create: [
@@ -135,37 +139,182 @@ async function main() {
           { amenityId: canteen.id },
         ],
       },
+      openingHours: {
+        create: [0, 1, 2, 3, 4, 5, 6].map((day) => ({
+          dayOfWeek: day,
+          openTime: new Date(1970, 0, 1, 5, 0),
+          closeTime: new Date(1970, 0, 1, 22, 0),
+        })),
+      },
+    },
+  });
+
+  const club3 = await prisma.club.create({
+    data: {
+      ownerId: owner1.id,
+      name: "Tennis Thảo Điền Luxury",
+      slug: "tennis-thao-dien-luxury",
+      address: "24 Xuân Thủy",
+      city: "Hồ Chí Minh",
+      district: "Quận 2",
+      logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=ThaoDien",
+      coverImageUrl: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=1200",
+      approvalStatus: "APPROVED",
+      amenities: {
+        create: [
+          { amenityId: wifi.id },
+          { amenityId: parking.id },
+          { amenityId: shower.id },
+        ],
+      },
+      openingHours: {
+        create: [0, 1, 2, 3, 4, 5, 6].map((day) => ({
+          dayOfWeek: day,
+          openTime: new Date(1970, 0, 1, 6, 0),
+          closeTime: new Date(1970, 0, 1, 21, 0),
+        })),
+      },
+    },
+  });
+
+  const club4 = await prisma.club.create({
+    data: {
+      ownerId: owner2.id,
+      name: "Trung Tâm Pickleball & Basketball",
+      slug: "pickleball-basketball-center",
+      address: "50 Lê Lợi",
+      city: "Hồ Chí Minh",
+      district: "Quận 1",
+      logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=PBCenter",
+      coverImageUrl: "https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=1200",
+      approvalStatus: "APPROVED",
+      amenities: {
+        create: [
+          { amenityId: wifi.id },
+          { amenityId: canteen.id },
+        ],
+      },
+      openingHours: {
+        create: [0, 1, 2, 3, 4, 5, 6].map((day) => ({
+          dayOfWeek: day,
+          openTime: new Date(1970, 0, 1, 7, 0),
+          closeTime: new Date(1970, 0, 1, 23, 0),
+        })),
+      },
     },
   });
 
   // 5. Create Courts & Pricing
   console.log("🏟 Creating courts and pricing...");
-  // Court 1
+  
+  // Football Courts
   const court1 = await prisma.court.create({
     data: {
       clubId: club1.id,
-      name: "Sân 5 số 1",
+      name: "Sân 5 số 1 (Futsal)",
       sportType: "FOOTBALL",
       surface: "Cỏ nhân tạo",
+      indoorOutdoor: "OUTDOOR",
       pricings: {
         create: [
-          { startTime: new Date(1970, 0, 1, 6, 0), endTime: new Date(1970, 0, 1, 17, 0), pricePerHour: 250000, label: "Giờ sáng" },
-          { startTime: new Date(1970, 0, 1, 17, 0), endTime: new Date(1970, 0, 1, 23, 0), pricePerHour: 450000, label: "Giờ vàng" },
+          { startTime: new Date(1970, 0, 1, 6, 0), endTime: new Date(1970, 0, 1, 16, 0), pricePerHour: 200000, label: "Giờ thường" },
+          { startTime: new Date(1970, 0, 1, 16, 0), endTime: new Date(1970, 0, 1, 23, 0), pricePerHour: 350000, label: "Giờ cao điểm" },
         ],
       },
     },
   });
 
-  // Court 2 (Badminton)
+  const courtF2 = await prisma.court.create({
+    data: {
+      clubId: club1.id,
+      name: "Sân 7 số 1",
+      sportType: "FOOTBALL",
+      surface: "Cỏ nhân tạo",
+      indoorOutdoor: "OUTDOOR",
+      pricings: {
+        create: [
+          { startTime: new Date(1970, 0, 1, 6, 0), endTime: new Date(1970, 0, 1, 16, 0), pricePerHour: 500000, label: "Giờ thường" },
+          { startTime: new Date(1970, 0, 1, 16, 0), endTime: new Date(1970, 0, 1, 23, 0), pricePerHour: 800000, label: "Giờ cao điểm" },
+        ],
+      },
+    },
+  });
+
+  // Badminton Courts
   const court2 = await prisma.court.create({
     data: {
       clubId: club2.id,
       name: "Sân Thảm 1",
       sportType: "BADMINTON",
       surface: "Sàn gỗ",
+      indoorOutdoor: "INDOOR",
       pricings: {
         create: [
-          { startTime: new Date(1970, 0, 1, 0, 0), endTime: new Date(1970, 0, 1, 24, 0), pricePerHour: 80000, label: "Đồng giá" },
+          { startTime: new Date(1970, 0, 1, 0, 0), endTime: new Date(1970, 0, 1, 24, 0), pricePerHour: 90000, label: "Đồng giá" },
+        ],
+      },
+    },
+  });
+
+  const courtB2 = await prisma.court.create({
+    data: {
+      clubId: club2.id,
+      name: "Sân Thảm 2 (VIP)",
+      sportType: "BADMINTON",
+      surface: "Thảm Yonex",
+      indoorOutdoor: "INDOOR",
+      pricings: {
+        create: [
+          { startTime: new Date(1970, 0, 1, 0, 0), endTime: new Date(1970, 0, 1, 24, 0), pricePerHour: 120000, label: "Đồng giá" },
+        ],
+      },
+    },
+  });
+
+  // Tennis Courts
+  const courtT1 = await prisma.court.create({
+    data: {
+      clubId: club3.id,
+      name: "Sân Tennis A",
+      sportType: "TENNIS",
+      surface: "Hard Court",
+      indoorOutdoor: "OUTDOOR",
+      pricings: {
+        create: [
+          { startTime: new Date(1970, 0, 1, 6, 0), endTime: new Date(1970, 0, 1, 17, 0), pricePerHour: 200000, label: "Giờ sáng" },
+          { startTime: new Date(1970, 0, 1, 17, 0), endTime: new Date(1970, 0, 1, 22, 0), pricePerHour: 400000, label: "Giờ đèn" },
+        ],
+      },
+    },
+  });
+
+  // Pickleball Courts
+  const courtP1 = await prisma.court.create({
+    data: {
+      clubId: club4.id,
+      name: "Pickleball 01",
+      sportType: "PICKLEBALL",
+      surface: "Acrylic",
+      indoorOutdoor: "INDOOR",
+      pricings: {
+        create: [
+          { startTime: new Date(1970, 0, 1, 0, 0), endTime: new Date(1970, 0, 1, 24, 0), pricePerHour: 150000, label: "Đồng giá" },
+        ],
+      },
+    },
+  });
+
+  // Basketball Courts
+  const courtBB1 = await prisma.court.create({
+    data: {
+      clubId: club4.id,
+      name: "Sân Bóng Rổ Trong Nhà",
+      sportType: "BASKETBALL",
+      surface: "Sàn gỗ xi bóng",
+      indoorOutdoor: "INDOOR",
+      pricings: {
+        create: [
+          { startTime: new Date(1970, 0, 1, 0, 0), endTime: new Date(1970, 0, 1, 24, 0), pricePerHour: 400000, label: "Thuê trọn sân" },
         ],
       },
     },
@@ -179,8 +328,8 @@ async function main() {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  async function createSlots(courtId: string, baseDate: Date) {
-    for (let hour = 6; hour < 22; hour++) {
+  async function createSlots(courtId: string, baseDate: Date, startHour = 6, endHour = 22) {
+    for (let hour = startHour; hour < endHour; hour++) {
       await prisma.timeSlot.create({
         data: {
           courtId,
@@ -192,9 +341,12 @@ async function main() {
     }
   }
 
-  await createSlots(court1.id, today);
-  await createSlots(court1.id, tomorrow);
-  await createSlots(court2.id, today);
+  const allCourtIds = [court1.id, courtF2.id, court2.id, courtB2.id, courtT1.id, courtP1.id, courtBB1.id];
+  
+  for (const id of allCourtIds) {
+    await createSlots(id, today);
+    await createSlots(id, tomorrow);
+  }
 
   // 7. Seed CRM data (ClubCustomer)
   console.log("💎 Seeding CRM data...");
