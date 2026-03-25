@@ -47,16 +47,18 @@
       </div>
       
       <div class="pc-filters">
-        <div class="pc-tier-filters">
-          <button 
-            v-for="tier in tiers" 
-            :key="tier.id" 
-            class="pc-tier-btn"
-            :class="[`tier-${tier.id}`, { active: selectedTier === tier.id }]"
-            @click="selectedTier = tier.id"
-          >
-            {{ tier.label }}
-          </button>
+        <div class="pc-tier-filters-wrapper">
+          <div class="pc-tier-filters">
+            <button 
+              v-for="tier in tiers" 
+              :key="tier.id" 
+              class="pc-tier-btn"
+              :class="[`tier-${tier.id}`, { active: selectedTier === tier.id }]"
+              @click="selectedTier = tier.id"
+            >
+              {{ tier.label }}
+            </button>
+          </div>
         </div>
         
         <div class="pc-select-wrapper">
@@ -661,11 +663,18 @@ export default {
   display: flex; align-items: center; gap: 24px;
 }
 
+.pc-tier-filters-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.pc-tier-filters-wrapper::-webkit-scrollbar { display: none; } /* Hide scrollbar for a cleaner look */
+
 .pc-tier-filters {
-  display: flex; gap: 8px;
+  display: inline-flex; gap: 8px;
   background: rgba(241, 245, 249, 0.6);
   padding: 6px;
   border-radius: 12px;
+  width: max-content;
 }
 
 .pc-tier-btn {
@@ -674,6 +683,7 @@ export default {
   font-family: inherit; font-size: 13px; font-weight: 600;
   color: #64748b; background: transparent;
   cursor: pointer; transition: all 0.2s;
+  white-space: nowrap; flex-shrink: 0;
 }
 
 .pc-tier-btn:hover { color: #1e293b; }
@@ -948,6 +958,15 @@ export default {
   padding: 24px; border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   display: flex; justify-content: space-between; align-items: center;
 }
+.modal-header .pc-icon-btn {
+  transition: all 0.2s ease;
+}
+.modal-header .pc-icon-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fca5a5;
+  transform: scale(1.1);
+}
 .modal-title-group { display: flex; align-items: center; gap: 12px; }
 .modal-title-group h3 { margin: 0; font-size: 20px; font-weight: 800; color: #1e293b; }
 .modal-body { padding: 24px; }
@@ -964,9 +983,16 @@ export default {
 .mobile-close-btn {
   position: absolute; top: 16px; right: 16px;
   width: 36px; height: 36px; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3); border: none;
+  background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.4);
   color: white; display: flex; align-items: center; justify-content: center;
   cursor: pointer; z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.mobile-close-btn:hover {
+  background: rgba(239, 68, 68, 0.9);
+  border-color: transparent;
+  transform: scale(1.1);
 }
 
 @media (min-width: 1201px) {
@@ -993,7 +1019,7 @@ export default {
   .pc-toolbar { flex-direction: column; align-items: stretch; }
   .pc-search-box { max-width: 100%; }
   .pc-filters { flex-direction: column; align-items: stretch; }
-  .pc-tier-filters { overflow-x: auto; }
+  .pc-tier-filters-wrapper { overflow-x: auto; }
   .pc-table th, .pc-table td { padding: 12px 10px; }
 }
 </style>
