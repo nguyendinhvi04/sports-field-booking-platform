@@ -24,6 +24,11 @@ const routes = [
     name: "about",
     component: () => import("../views/client/AboutView.vue"),
   },
+  {
+    path: "/map",
+    name: "map",
+    component: () => import("../views/client/MapView.vue"),
+  },
 
   // Auth Group
   {

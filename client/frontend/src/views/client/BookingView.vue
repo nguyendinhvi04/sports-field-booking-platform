@@ -11,7 +11,7 @@
       <button class="ann-close" @click="showAnnouncement = false" aria-label="Đóng thông báo">×</button>
     </div>
 
-    <div class="page-shell">
+    <div class="page-shell pt-24">
 
       <!-- ══ PAGE HEADER ══ -->
       <header class="page-header">
@@ -74,16 +74,30 @@
           </div>
         </div>
 
-        <!-- Map placeholder (toggle) -->
-        <transition name="slide-down">
-          <div v-if="showMap" class="map-container" aria-label="Bản đồ các sân thể thao" role="region">
-            <div class="map-placeholder">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/></svg>
-              <span>Bản đồ tương tác (tích hợp Google Maps / Leaflet)</span>
-            </div>
-          </div>
-        </transition>
       </header>
+    </div> <!-- end page-shell inner part (header) -->
+
+    <div class="page-shell-map">
+      <!-- Mapbox Map (toggle) -->
+      <transition 
+        name="slide-down"
+        @after-enter="onMapTransitionEnd"
+      >
+        <div v-show="showMap" class="map-container" aria-label="Bản đồ các sân thể thao" role="region">
+          <div ref="bookingMapEl" id="booking-map" class="booking-mapbox"></div>
+          <div v-if="mapLoading" class="map-loader" aria-live="polite">
+            <span class="map-spinner"></span>
+            <span>Đang tải bản đồ...</span>
+          </div>
+          <div class="map-stats-badge" v-if="!mapLoading && venues.length > 0">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            {{ venues.filter(v => v.latitude && v.longitude).length }} sân trên bản đồ
+          </div>
+        </div>
+      </transition>
+    </div>
+
+    <div class="page-shell pb-60">
 
       <!-- ══ ONLINE BOOKING ALERT ══ -->
       <div
@@ -242,6 +256,8 @@
 </template>
 
 <script>
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import BookingFilters from "@/components/client/booking/BookingFilters.vue";
 import VenueCard      from "@/components/client/booking/VenueCard.vue";
 import { clubService } from "@/services/club.service.js";
@@ -297,6 +313,12 @@ export default {
       pageSize:           8,
       totalCount:         0,
       currentSort:        "distance",
+      // Map state
+      bookingMap:         null,
+      bookingMarkers:     [],
+      bookingPopups:      {},
+      mapLoading:         false,
+      highlightedVenueId: null,
 
       filters: {
         sport:    this.$route?.query.sport    || "badminton",
@@ -500,7 +522,159 @@ export default {
       }
     },
 
-    toggleMap() { this.showMap = !this.showMap; },
+    toggleMap() {
+      this.showMap = !this.showMap;
+      if (this.showMap) {
+        // Init happens once
+        if (!this.bookingMap) {
+          this.$nextTick(() => this.initBookingMap());
+        }
+      }
+    },
+
+    onMapTransitionEnd() {
+      if (this.bookingMap) {
+        this.bookingMap.resize();
+        // Re-fit in case bounds changed or weren't calculated on 0 size
+        const withCoords = this.venues.filter(v => v.latitude && v.longitude);
+        if (withCoords.length > 1) {
+          const bounds = new mapboxgl.LngLatBounds();
+          withCoords.forEach(v => bounds.extend([v.longitude, v.latitude]));
+          this.bookingMap.fitBounds(bounds, { padding: 50, maxZoom: 14, duration: 400 });
+        }
+      }
+    },
+
+    // ── Init Mapbox map in booking page ──
+    initBookingMap() {
+      const token = import.meta.env.VITE_MAPBOX_TOKEN;
+      if (!token || !this.$refs.bookingMapEl) return;
+
+      if (this.bookingMap) {
+        // Map đã tồn tại, chỉ cần render lại markers
+        this.renderBookingMarkers();
+        return;
+      }
+
+      mapboxgl.accessToken = token;
+      this.mapLoading = true;
+
+      // Tính center từ danh sách venues có toạ độ
+      const withCoords = this.venues.filter(v => v.latitude && v.longitude);
+      const center = withCoords.length > 0
+        ? [withCoords[0].longitude, withCoords[0].latitude]
+        : [106.6297, 10.8231]; // fallback HCM
+
+      this.bookingMap = new mapboxgl.Map({
+        container: this.$refs.bookingMapEl,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center,
+        zoom: 12,
+        attributionControl: false,
+      });
+
+      this.bookingMap.addControl(
+        new mapboxgl.AttributionControl({ compact: true }), 'bottom-right'
+      );
+
+      this.bookingMap.on('load', () => {
+        this.mapLoading = false;
+        this.renderBookingMarkers();
+        // Fit map to show all markers
+        if (withCoords.length > 1) {
+          const bounds = new mapboxgl.LngLatBounds();
+          withCoords.forEach(v => bounds.extend([v.longitude, v.latitude]));
+          this.bookingMap.fitBounds(bounds, { padding: 50, maxZoom: 14, duration: 800 });
+        }
+      });
+    },
+
+    // ── Render/update markers on booking map ──
+    renderBookingMarkers() {
+      if (!this.bookingMap) return;
+
+      // Clear old markers + popups
+      this.bookingMarkers.forEach(m => m.remove());
+      this.bookingMarkers = [];
+      Object.values(this.bookingPopups).forEach(p => p.remove());
+      this.bookingPopups = {};
+
+      const SPORT_EMOJI = {
+        FOOTBALL: '⚽', BADMINTON: '🏸', TENNIS: '🎾',
+        PICKLEBALL: '🏓', BASKETBALL: '🏀', VOLLEYBALL: '🏐',
+      };
+
+      this.venues.forEach(venue => {
+        if (!venue.latitude || !venue.longitude) return;
+
+        // Marker element
+        const el = document.createElement('div');
+        el.className = 'bk-marker';
+        el.innerHTML = `
+          <div class="bk-pin"  data-vid="${venue.id}"  title="${venue.name}"  role="button"  aria-label="Sân ${venue.name}"  tabindex="0">
+            <span class="bk-pin-emoji">${SPORT_EMOJI[venue.sportType?.toUpperCase()] || '📍'}</span>
+            <span class="bk-pin-label">${venue.name.length > 14 ? venue.name.slice(0, 14) + '…' : venue.name}</span>
+          </div>
+          <div class="bk-shadow"></div>
+        `;
+
+        // Popup HTML
+        const priceStr = venue.minPrice
+          ? `Từ ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(venue.minPrice)}/h`
+          : 'Liên hệ';
+        const imgSrc = venue.image || 'https://images.unsplash.com/photo-1562552476-3f8e2f59a2b7?w=600&q=80';
+        const distStr = venue.distance ? ` · ${venue.distance} km` : '';
+
+        const popup = new mapboxgl.Popup({
+          offset: 12,
+          closeButton: false,
+          maxWidth: '260px',
+          className: 'bk-popup',
+        }).setHTML(`
+          <div class="bk-popup-inner">
+            <img src="${imgSrc}" alt="${venue.name}" class="bk-popup-img" onerror="this.src='https://images.unsplash.com/photo-1562552476-3f8e2f59a2b7?w=200&q=60'" />
+            <div class="bk-popup-body">
+              <h4 class="bk-popup-name">${venue.name}</h4>
+              <p class="bk-popup-addr">${venue.district || ''}${distStr}</p>
+              <div class="bk-popup-foot">
+                <span class="bk-popup-price">${priceStr}</span>
+                <a href="/venue/${venue.slug}" class="bk-popup-btn" onclick="return false;" data-slug="${venue.slug}">Đặt sân</a>
+              </div>
+            </div>
+          </div>
+        `);
+
+        popup.on('open', () => {
+          const btn = document.querySelector(`.bk-popup [data-slug="${venue.slug}"]`);
+          if (btn) btn.addEventListener('click', () => this.$router.push(`/venue/${venue.slug}`));
+        });
+
+        this.bookingPopups[venue.id] = popup;
+
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat([venue.longitude, venue.latitude])
+          .setPopup(popup)
+          .addTo(this.bookingMap);
+
+        el.addEventListener('click', () => {
+          // Highlight card in list
+          this.highlightedVenueId = venue.id;
+          setTimeout(() => { this.highlightedVenueId = null; }, 2000);
+        });
+
+        this.bookingMarkers.push(marker);
+      });
+    },
+
+    // ── Destroy map when hidden ──
+    destroyBookingMap() {
+      if (this.bookingMap) {
+        this.bookingMarkers.forEach(m => m.remove());
+        this.bookingMarkers = [];
+        this.bookingMap.remove();
+        this.bookingMap = null;
+      }
+    },
 
     setSort(val) {
       this.currentSort = val;
@@ -564,10 +738,26 @@ export default {
 .page-shell {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 24px 24px 60px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+.pt-24 { padding-top: 24px; }
+.pb-60 { padding-bottom: 60px; }
+
+.page-shell-map {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
-/* ══ Breadcrumb ══ */
+/* ══ Map container ══ */
+.map-container {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 24px;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+}
 .breadcrumb ol {
   display: flex; align-items: center; gap: 6px;
   list-style: none; margin: 0 0 14px; padding: 0;
@@ -652,13 +842,62 @@ export default {
   background: var(--card); border: 1.5px solid var(--border);
   border-radius: var(--radius); margin-bottom: 20px;
   overflow: hidden;
+  position: relative;
 }
-.map-placeholder {
-  height: 300px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 12px;
-  color: var(--muted); font-size: 14px;
+
+.booking-mapbox {
+  width: 100%;
+  height: 380px;
 }
-.map-placeholder svg { width: 40px; height: 40px; stroke: var(--border); fill: none; stroke-width: 1.5; }
+
+.map-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(4px);
+  font-size: 13px;
+  color: var(--muted);
+  z-index: 5;
+}
+
+.map-spinner {
+  width: 28px; height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin-bk 0.7s linear infinite;
+  display: block;
+}
+@keyframes spin-bk { to { transform: rotate(360deg); } }
+
+.map-stats-badge {
+  position: absolute;
+  top: 10px; left: 10px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 4;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.map-stats-badge svg {
+  width: 13px; height: 13px;
+  stroke: var(--green);
+  stroke-width: 2;
+  fill: none;
+}
 
 /* ══ Online alert ══ */
 .online-alert {
@@ -762,9 +1001,10 @@ export default {
 .page-ellipsis { color: var(--muted); padding: 0 4px; }
 
 /* ══ Transitions ══ */
-.slide-down-enter-active, .slide-down-leave-active { transition: all .35s ease; overflow: hidden; }
+.slide-down-enter-active, .slide-down-leave-active { transition: all .4s ease; overflow: hidden; }
 .slide-down-enter-from, .slide-down-leave-to { max-height: 0; opacity: 0; }
-.slide-down-enter-to, .slide-down-leave-from { max-height: 400px; opacity: 1; }
+.slide-down-enter-to, .slide-down-leave-from { max-height: 420px; opacity: 1; }
+
 
 /* ══ Responsive ══ */
 @media (max-width: 900px) {
@@ -807,5 +1047,85 @@ export default {
 @media (max-width: 600px) {
   .page-shell { padding: 16px 16px 48px; }
   .header-row { flex-direction: column; }
+  .booking-mapbox { height: 260px; }
 }
+</style>
+
+<!-- Global styles for Mapbox markers/popups (cannot be scoped) -->
+<style>
+/* Booking map marker */
+.bk-marker { cursor: pointer; }
+.bk-pin {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #1a56db, #2563eb);
+  color: #fff;
+  border-radius: 20px 20px 20px 4px;
+  padding: 5px 10px 5px 7px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+.bk-pin:hover {
+  transform: scale(1.08);
+  box-shadow: 0 5px 18px rgba(37, 99, 235, 0.55);
+}
+.bk-pin-emoji { font-size: 14px; line-height: 1; }
+.bk-pin-label { font-size: 11px; font-weight: 600; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
+.bk-shadow {
+  width: 24px; height: 6px;
+  background: rgba(0,0,0,0.12);
+  border-radius: 50%;
+  margin: 1px auto 0;
+}
+
+/* Booking map popup */
+.bk-popup .mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.16) !important;
+}
+.bk-popup-inner {
+  display: flex;
+  flex-direction: column;
+  width: 230px;
+}
+.bk-popup-img {
+  width: 100%; height: 100px;
+  object-fit: cover;
+  display: block;
+}
+.bk-popup-body {
+  padding: 10px 12px 12px;
+}
+.bk-popup-name {
+  font-size: 0.83rem; font-weight: 700;
+  color: #111827; margin: 0 0 3px;
+  line-height: 1.3;
+}
+.bk-popup-addr {
+  font-size: 0.72rem; color: #6b7280;
+  margin: 0 0 8px;
+}
+.bk-popup-foot {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 8px;
+}
+.bk-popup-price {
+  font-size: 0.72rem; color: #374151; font-weight: 700;
+}
+.bk-popup-btn {
+  background: linear-gradient(135deg, #1a56db, #2563eb);
+  color: #fff; font-size: 0.7rem; font-weight: 700;
+  padding: 5px 11px; border-radius: 6px;
+  text-decoration: none; cursor: pointer;
+  transition: opacity 0.2s;
+}
+.bk-popup-btn:hover { opacity: 0.85; }
 </style>
