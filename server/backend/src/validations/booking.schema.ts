@@ -3,10 +3,10 @@ import { z } from "zod";
 // Zod v4: dùng .min(1, msg) thay cho required_error
 
 export const createBookingSchema = z.object({
-  courtId: z
+  clubId: z
     .string()
-    .min(1, "Vui lòng chọn sân")
-    .cuid("courtId không hợp lệ"),
+    .min(1, "Vui lòng chọn câu lạc bộ")
+    .cuid("clubId không hợp lệ"),
 
   timeSlotIds: z
     .array(z.string().cuid("Slot ID không hợp lệ"))

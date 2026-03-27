@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
+
+.vdp { font-family:'Barlow Condensed',sans-serif; background:#f1f5f9; min-height:100vh; }
+
+/* ── Hero ── */
+.vdp-hero { height:400px; background-size:cover; background-position:center; position:relative; display:flex; align-items:flex-end; padding-bottom:48px; }
+.vdp-hero__overlay { position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.15) 70%); }
+.vdp-sep { width:1px; height:28px; background:rgba(255,255,255,.3); }
+.vdp-main { margin-top:-28px; position:relative; z-index:5; padding-bottom:80px; }
+
+/* ── Tabs ── */
+.vdp-tabs { gap:3px; }
+.vdp-tab { border:none; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13.5px; color:#64748b; border-radius:12px 12px 0 0; padding:12px 24px; background:rgba(255,255,255,.85); backdrop-filter:blur(4px); transition:all .18s; }
+.vdp-tab:hover  { background:white; color:#374151; }
+.vdp-tab.active { color:#16a34a; border-bottom:2.5px solid #16a34a; background:white; box-shadow:0 -4px 12px rgba(0,0,0,.06); }
+
+/* ── Step numbers ── */
+.vdp-snum { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#16a34a,#15803d); color:#fff; font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; box-shadow:0 3px 10px rgba(22,163,74,.35); }
+
+/* ── Cards ── */
+.vdp-court-card,.vdp-date-card,.vdp-slot-card,.vdp-svc-card { transition:all .2s cubic-bezier(.2,.8,.4,1); box-shadow:0 1px 3px rgba(0,0,0,.06); }
+.vdp-court-card:hover,.vdp-svc-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(22,163,74,.15)!important; }
+.vdp-date-card:hover  { transform:translateY(-2px); box-shadow:0 4px 12px rgba(22,163,74,.12)!important; }
+.vdp-slot-card:hover:not(.vdp-slot--booked) { transform:translateY(-2px); box-shadow:0 6px 16px rgba(22,163,74,.15)!important; }
+.vdp-lgd { width:13px; height:13px; border-radius:3px; display:inline-block; flex-shrink:0; }
+.vdp-slot--booked { background:#fff5f5!important; border-color:#fca5a5!important; cursor:not-allowed!important; opacity:.85; }
+
+/* ── Form ── */
+.vdp .form-control,.vdp .form-control-sm { border-color:#e2e8f0; border-radius:10px!important; font-family:'Barlow Condensed',sans-serif; font-size:13px; transition:border-color .15s,box-shadow .15s; }
+.vdp .form-control:focus { border-color:#16a34a; box-shadow:0 0 0 3px rgba(22,163,74,.1); }
+.vdp .input-group-text { border-color:#e2e8f0; background:#f8fafc; }
+.vdp .input-group>.form-control:not(:last-child) { border-radius:10px 0 0 10px!important; }
+.vdp .input-group>:last-child { border-radius:0 10px 10px 0!important; }
+
+/* ── Buttons ── */
+.vdp .btn-success { background:linear-gradient(135deg,#16a34a,#15803d); border:none; font-family:'Barlow Condensed',sans-serif; font-weight:700; border-radius:10px; box-shadow:0 3px 10px rgba(22,163,74,.3); transition:all .2s; }
+.vdp .btn-success:hover:not(:disabled) { background:linear-gradient(135deg,#15803d,#14532d); transform:translateY(-1px); box-shadow:0 6px 16px rgba(22,163,74,.35); }
+.vdp .btn-success:disabled { transform:none; box-shadow:none; opacity:.5; }
+.vdp .btn-dark { background:#1e293b; border:none; font-family:'Barlow Condensed',sans-serif; font-weight:700; border-radius:10px; transition:all .18s; }
+.vdp .btn-dark:hover:not(:disabled) { background:#16a34a; }
+.vdp .btn-outline-secondary { font-family:'Barlow Condensed',sans-serif; font-weight:600; border-radius:10px; border-color:#e2e8f0; color:#64748b; }
+.vdp .btn-outline-secondary:hover { background:#f8fafc; color:#374151; border-color:#cbd5e1; }
+.vdp .btn-group .btn { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:12px; padding:6px 14px; }
+
+/* ── Sidebar ── */
+.vdp-sidebar { border-radius:16px!important; box-shadow:0 4px 24px rgba(0,0,0,.09),0 1px 4px rgba(0,0,0,.05)!important; }
+.vdp-sidebar .card-header { background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%)!important; border-bottom:none; }
+.vdp-slot-row { background:#f8fafc; border-radius:10px; }
+.vdp-slot-row:hover { background:#f1f5f9; }
+.vdp-rm-btn { width:22px; height:22px; border-radius:50%; background:#fee2e2; color:#ef4444; border:none; display:flex; align-items:center; justify-content:center; font-size:15px; cursor:pointer; flex-shrink:0; transition:background .15s; padding:0; line-height:1; }
+.vdp-rm-btn:hover { background:#fecaca; }
+
+/* ── Timeline ── */
+.vdp-tl { overflow:hidden; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 1px 4px rgba(0,0,0,.05); }
+.vdp-tl-scroll { overflow-x:auto; scrollbar-width:thin; scrollbar-color:#e2e8f0 transparent; }
+.vdp-tl-lbl { width:88px; min-width:88px; flex-shrink:0; position:sticky; left:0; z-index:10; background:inherit; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; border-right:1px solid rgba(255,255,255,.12); }
+.vdp-tl-clbl { background:#f8fafc!important; color:#0f172a; border-right:2px solid #cbd5e1!important; height:56px; }
+.vdp-tl-hcell { flex:1; min-width:44px; height:40px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; border-right:1px solid rgba(255,255,255,.1); }
+.vdp-tl-row { border-bottom:1px solid #e2e8f0; min-width:max-content; }
+.vdp-tl-row:last-child { border-bottom:none; }
+.vdp-tl-body { height:56px; }
+.vdp-tl-cell { flex:1; min-width:44px; height:100%; border-right:1px solid #e9ecef; transition:background .1s; }
+.vdp-tl-cell--free { background:#fff; cursor:pointer; }
+.vdp-tl-cell--free:hover { background:#dcfce7; }
+.vdp-tl-cell--booked { background:#fff5f5; cursor:not-allowed; }
+.vdp-tl-cell--noslot { background:#f1f5f9; cursor:not-allowed; }
+.vdp-tl-row:nth-child(even) .vdp-tl-cell--free { background:#fafafa; }
+.vdp-tl-row:nth-child(even) .vdp-tl-cell--free:hover { background:#dcfce7; }
+.vdp-tl-row:nth-child(even) .vdp-tl-cell--noslot { background:#eaeff4; }
+.vdp-tl-block { top:7px; bottom:7px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; padding:0 8px; white-space:nowrap; z-index:5; box-shadow:0 2px 6px rgba(0,0,0,.12); }
+.vdp-tl-block--bk  { background:linear-gradient(135deg,#f87171,#ef4444); color:#fff; cursor:not-allowed; }
+.vdp-tl-block--sel { background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; cursor:pointer; }
+.vdp-tl-block--sel:hover { filter:brightness(1.06); }
+
+/* ── Gallery ── */
+.vdp-gallery__main { box-shadow:0 8px 32px rgba(0,0,0,.16); }
+.vdp-gal-nav { position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px; border-radius:50%; border:none; background:rgba(255,255,255,.92); color:#1e293b; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:5; box-shadow:0 4px 16px rgba(0,0,0,.22); transition:all .18s; backdrop-filter:blur(4px); }
+.vdp-gal-nav:hover { background:#fff; transform:translateY(-50%) scale(1.08); }
+.vdp-gal-nav--prev { left:14px; }
+.vdp-gal-nav--next { right:14px; }
+.vdp-gal-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.55); transition:all .25s ease; }
+.vdp-gal-dot--active { background:#fff; width:22px; border-radius:4px; }
+.vdp-gal-thumb { width:100px; height:66px; cursor:pointer; opacity:.6; border:2.5px solid transparent; transition:all .2s ease; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+.vdp-gal-thumb:hover { opacity:.88; transform:translateY(-2px); }
+.vdp-gal-thumb--active { border-color:#16a34a!important; opacity:1; transform:translateY(-3px); box-shadow:0 6px 16px rgba(22,163,74,.28); }
+
+/* ── Review – Tổng quan ── */
+.vdp-rv-summary { background:linear-gradient(135deg,#f8fafc,#f0fdf4); }
+.vdp-rv-score__num { font-size:56px; font-weight:900; color:#0f172a; line-height:1; letter-spacing:-2px; }
+.vdp-rv-bar { height:8px; background:#e2e8f0; border-radius:6px; overflow:hidden; }
+.vdp-rv-bar__fill { height:100%; background:linear-gradient(90deg,#fbbf24,#f59e0b); border-radius:6px; transition:width .6s ease; }
+
+/* ── Review – Auth box (idle) ── */
+.vdp-rv-auth-box { background:linear-gradient(135deg,#f8fafc,#f0fdf4); border:1.5px dashed #bbf7d0; }
+.vdp-rv-auth-icon { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#dcfce7,#bbf7d0); color:#15803d; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+/* ── Review – Verified badge (trên form) ── */
+.vdp-rv-verified-badge { display:inline-flex; align-items:center; gap:6px; background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700; font-family:'Barlow Condensed',sans-serif; }
+.vdp-rv-verified-reset { background:none; border:none; color:#15803d; cursor:pointer; padding:0; display:flex; align-items:center; opacity:.7; transition:opacity .15s; }
+.vdp-rv-verified-reset:hover { opacity:1; }
+
+/* ── Review – Locked box (denied) ── */
+.vdp-rv-locked-box { background:linear-gradient(135deg,#fef9f0,#fef3c7); border:1.5px solid #fde68a; }
+.vdp-rv-locked-icon { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#fef3c7,#fde68a); color:#d97706; display:flex; align-items:center; justify-content:center; }
+
+/* ── Review – Star input ── */
+.vdp-star-btn { background:none; border:none; font-size:30px; color:#e2e8f0; cursor:pointer; padding:0 2px; transition:all .15s; line-height:1; }
+.vdp-star-btn--filled { color:#f59e0b; transform:scale(1.12); }
+.vdp-star-btn:hover { transform:scale(1.18); }
+
+/* ── Review – Upload ảnh ── */
+.vdp-rv-addimg { border:2px dashed #d1d5db; background:#f8fafc; transition:all .2s; }
+.vdp-rv-addimg:hover { border-color:#16a34a; background:#f0fdf4; }
+.vdp-rv-imgprev__rm { position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,.72); color:#fff; border:none; display:flex; align-items:center; justify-content:center; font-size:13px; cursor:pointer; padding:0; line-height:1; transition:background .15s; }
+.vdp-rv-imgprev__rm:hover { background:#ef4444; }
+
+/* ── Review – Card ── */
+.vdp-rv-card { background:#f8fafc; border:1px solid #e9ecef; transition:box-shadow .2s,transform .2s; }
+.vdp-rv-card:hover { box-shadow:0 6px 20px rgba(0,0,0,.08); transform:translateY(-1px); }
+.vdp-rv-avatar { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#16a34a,#059669); color:#fff; font-weight:900; font-size:17px; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 3px 10px rgba(22,163,74,.3); }
+
+/* Badge "Đã đặt sân" trong card review */
+.vdp-rv-verified-tag { display:inline-flex; align-items:center; gap:4px; background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; border-radius:20px; padding:2px 8px; font-size:11px; font-weight:700; font-family:'Barlow Condensed',sans-serif; }
+
+.vdp-rv-photo { width:84px; height:84px; cursor:pointer; overflow:hidden; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.1); transition:transform .2s,box-shadow .2s; flex-shrink:0; }
+.vdp-rv-photo:hover { transform:scale(1.04); box-shadow:0 6px 16px rgba(0,0,0,.16); }
+.vdp-rv-like-btn { background:none; border:1px solid #e2e8f0; border-radius:20px; padding:4px 14px; font-size:12px; font-weight:700; color:#64748b; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all .15s; font-family:'Barlow Condensed',sans-serif; }
+.vdp-rv-like-btn:hover { border-color:#16a34a; color:#16a34a; background:#f0fdf4; }
+
+/* ── Lightbox ── */
+.vdp-lightbox { position:fixed; inset:0; background:rgba(0,0,0,.93); z-index:9999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(10px); }
+.vdp-lightbox__img { max-width:88vw; max-height:86vh; object-fit:contain; border-radius:14px; box-shadow:0 24px 80px rgba(0,0,0,.6); }
+.vdp-lightbox__close { position:absolute; top:20px; right:20px; width:46px; height:46px; border-radius:50%; background:rgba(255,255,255,.1); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s; backdrop-filter:blur(4px); }
+.vdp-lightbox__close:hover { background:rgba(255,255,255,.22); }
+.vdp-lightbox__nav { position:absolute; top:50%; transform:translateY(-50%); width:50px; height:50px; border-radius:50%; background:rgba(255,255,255,.1); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s; backdrop-filter:blur(4px); }
+.vdp-lightbox__nav:hover { background:rgba(255,255,255,.22); }
+.vdp-lightbox__nav--prev { left:20px; }
+.vdp-lightbox__nav--next { right:20px; }
+.vdp-lightbox__counter { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.75); font-size:13px; font-weight:700; background:rgba(0,0,0,.45); padding:5px 16px; border-radius:20px; font-family:'Barlow Condensed',sans-serif; }
+
+/* ── Modal ── */
+.vdp-modal-bg { background:rgba(15,23,42,.7); backdrop-filter:blur(6px); }
+.vdp .modal-content { border-radius:20px!important; }
+
+/* ── Transitions ── */
+.acc-enter-active { transition:all .25s ease; }
+.acc-leave-active { transition:all .2s ease; }
+.acc-enter-from,.acc-leave-to { opacity:0; transform:translateY(-8px); }
+.fade-enter-active,.fade-leave-active { transition:opacity .2s; }
+.fade-enter-from,.fade-leave-to { opacity:0; }
+.gfade-enter-active,.gfade-leave-active { transition:opacity .3s ease; }
+.gfade-enter-from,.gfade-leave-to { opacity:0; }
+
+@keyframes pop { from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1} }
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:10px; }

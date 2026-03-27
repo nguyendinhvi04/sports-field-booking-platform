@@ -103,6 +103,8 @@ async function main() {
       address: "15 Thanh Đa",
       city: "Hồ Chí Minh",
       district: "Bình Thạnh",
+      latitude: 10.8213,
+      longitude: 106.7157,
       logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=ThanhDa",
       coverImageUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200",
       approvalStatus: "APPROVED",
@@ -130,6 +132,8 @@ async function main() {
       address: "100 Huỳnh Tấn Phát",
       city: "Hồ Chí Minh",
       district: "Quận 7",
+      latitude: 10.7365,
+      longitude: 106.7010,
       logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=Q7Pro",
       coverImageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=1200",
       approvalStatus: "APPROVED",
@@ -157,6 +161,8 @@ async function main() {
       address: "24 Xuân Thủy",
       city: "Hồ Chí Minh",
       district: "Quận 2",
+      latitude: 10.8042,
+      longitude: 106.7367,
       logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=ThaoDien",
       coverImageUrl: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=1200",
       approvalStatus: "APPROVED",
@@ -185,6 +191,8 @@ async function main() {
       address: "50 Lê Lợi",
       city: "Hồ Chí Minh",
       district: "Quận 1",
+      latitude: 10.7745,
+      longitude: 106.7021,
       logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=PBCenter",
       coverImageUrl: "https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=1200",
       approvalStatus: "APPROVED",
@@ -388,7 +396,7 @@ async function main() {
     await prisma.booking.create({
       data: {
         userId: user1.id,
-        courtId: court1.id,
+        clubId: club1.id,
         status: "CONFIRMED",
         totalAmount: 200000,
         finalAmount: 200000,
@@ -406,7 +414,7 @@ async function main() {
     await prisma.booking.create({
       data: {
         userId: user2.id,
-        courtId: court1.id,
+        clubId: club1.id,
         status: "PENDING",
         totalAmount: 200000,
         finalAmount: 200000,
@@ -424,7 +432,7 @@ async function main() {
     await prisma.booking.create({
       data: {
         userId: user1.id,
-        courtId: courtF2.id,
+        clubId: club1.id,
         status: "COMPLETED",
         totalAmount: 800000,
         finalAmount: 800000,
@@ -448,7 +456,7 @@ async function main() {
     await prisma.booking.create({
       data: {
         userId: user2.id,
-        courtId: court2.id,
+        clubId: club2.id,
         status: "CONFIRMED",
         totalAmount: 90000,
         finalAmount: 90000,

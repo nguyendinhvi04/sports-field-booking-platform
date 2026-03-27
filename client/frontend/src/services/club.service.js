@@ -27,5 +27,20 @@ export const clubService = {
      */
     searchVenues(filters) {
         return api.get('/clubs', { params: filters });
-    }
+    },
+    
+    //thêm mới câu lạc bộ
+    addClub(clubId, clubData) {
+        return api.post(`/owner/clubs/${clubId}/amenities`, clubData);
+    },
+
+    //chỉnh sửa câu lạc bộ
+    editClub(clubId, clubData) {
+        return api.put(`/owner/clubs/${clubId}`, clubData);
+    },
+
+    //lấy toàn bộ thông tin câu lạc bộ
+    Getallthedetails(clubId) {
+        return api.get(`/owner/clubs/${clubId}`);
+    },
 };

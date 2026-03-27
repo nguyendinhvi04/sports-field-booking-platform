@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const manualBookingSchema = z.object({
-  courtId: z.string().min(1, "Vui lòng chọn sân"),
+  clubId: z.string().min(1, "Vui lòng chọn câu lạc bộ"),
   timeSlotIds: z.array(z.string()).min(1, "Vui lòng chọn ít nhất 1 slot"),
   bookerName: z.string().min(1, "Tên khách hàng là bắt buộc"),
   bookerPhone: z.string().min(1, "Số điện thoại là bắt buộc"),

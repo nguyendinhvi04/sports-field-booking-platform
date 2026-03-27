@@ -3,7 +3,6 @@ import { PaymentMethod } from "@/generated/prisma";
 import type { CreateBookingInput } from "@/validations/booking.schema";
 import type { ManualBookingInput } from "@/validations/manual-booking.schema";
 import { updateClubCustomerStats } from "./club-customer.service";
-import { includes } from "zod";
 
 // ============================================================
 // BOOKING SERVICE
@@ -13,43 +12,40 @@ import { includes } from "zod";
  * Tạo booking mới (bao gồm kiểm tra slot còn trống và tính tiền)
  */
 export async function createBooking(userId: string, input: CreateBookingInput) {
-  // Lấy tất cả slot được chọn và kiểm tra trạng thái
+  // 1. Lấy tất cả slot được chọn kèm thông tin Court và Pricing
   const slots = await prisma.timeSlot.findMany({
     where: {
       id: { in: input.timeSlotIds },
-      courtId: input.courtId,
+      court: { clubId: input.clubId }, // Đảm bảo thuộc đúng Club
     },
+    include: {
+      court: {
+        include: {
+          club: { select: { slotDuration: true } },
+          pricings: { where: { isActive: true } }
+        }
+      }
+    }
   });
 
-  // Kiểm tra đủ số slot yêu cầu
+  // 2. Kiểm tra đủ số slot yêu cầu
   if (slots.length !== input.timeSlotIds.length) {
-    console.log("du slot");
-    throw new Error("SLOT_NOT_FOUND");
+    throw new Error("SLOT_NOT_FOUND_OR_INVALID_CLUB");
   }
 
-  // Kiểm tra tất cả slot phải đang AVAILABLE
-  const unavailableSlot = slots.find((s) => s.status !== "AVAILABLE");
-  if (unavailableSlot) {
+  // 3. Kiểm tra trạng thái slot
+  if (slots.some(s => s.status !== "AVAILABLE")) {
     throw new Error("SLOT_NOT_AVAILABLE");
   }
 
-  // Tính tổng giá (lấy giá từ court_pricings theo giờ)
-  const court = await prisma.court.findUnique({
-    where: { id: input.courtId },
-    include: { 
-      club: { select: { slotDuration: true } },
-      pricings: { where: { isActive: true } } 
-    },
-  });
-  if (!court) throw new Error("COURT_NOT_FOUND");
-
-  // Tính giá từng slot bằng cách match với pricing
+  // 4. Tính toán giá tiền cho từng slot (dựa trên pricing của từng sân)
   let totalAmount = 0;
   const slotPrices: { slotId: string; price: number }[] = [];
 
   for (const slot of slots) {
     const slotHour = slot.startTime.getHours();
     const slotDow = slot.startTime.getDay();
+    const court = slot.court;
 
     const pricing = court.pricings.find((p) => {
       const pStart = p.startTime.getHours();
@@ -64,7 +60,7 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
     slotPrices.push({ slotId: slot.id, price });
   }
 
-  // Áp dụng voucher nếu có
+  // 5. Áp dụng voucher nếu có
   let discountAmount = 0;
   let voucherId: string | undefined;
 
@@ -75,7 +71,7 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
         isActive: true,
         startDate: { lte: new Date() },
         endDate: { gte: new Date() },
-        OR: [{ clubId: court.clubId }, { clubId: null }],
+        OR: [{ clubId: input.clubId }, { clubId: null }],
       },
     });
 
@@ -100,9 +96,9 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
 
   const finalAmount = Math.max(0, totalAmount - discountAmount);
 
-  // Dùng transaction để tránh race condition
-  const booking = await prisma.$transaction(async (tx) => {
-    // Re-check slot status bên trong transaction (lock)
+  // 6. Transaction
+  return await prisma.$transaction(async (tx) => {
+    // Re-check slot status inside transaction
     const lockedSlots = await tx.timeSlot.findMany({
       where: { id: { in: input.timeSlotIds }, status: "AVAILABLE" },
     });
@@ -110,17 +106,17 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
       throw new Error("SLOT_TAKEN");
     }
 
-    // Cập nhật trạng thái slot → BOOKED
+    // Update status -> BOOKED
     await tx.timeSlot.updateMany({
       where: { id: { in: input.timeSlotIds } },
       data: { status: "BOOKED" },
     });
 
-    // Tạo booking
+    // Create Booking
     const newBooking = await tx.booking.create({
       data: {
         userId,
-        courtId: input.courtId,
+        clubId: input.clubId,
         status: "WAITING_PAYMENT",
         totalAmount,
         discountAmount,
@@ -145,12 +141,11 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
         },
       },
       include: {
-        items: { include: { timeSlot: true } },
+        items: { include: { timeSlot: { include: { court: true } } } },
         payment: true,
       },
     });
 
-    // Tăng usedCount voucher nếu có
     if (voucherId) {
       await tx.voucher.update({
         where: { id: voucherId },
@@ -160,8 +155,6 @@ export async function createBooking(userId: string, input: CreateBookingInput) {
 
     return newBooking;
   });
-
-  return booking;
 }
 
 /**
@@ -180,50 +173,52 @@ export async function createManualBooking(ownerId: string, clubId: string, input
   });
 
   if (!user) {
-    // Tạo user "vãng lai" nếu chưa tồn tại
     user = await prisma.user.create({
       data: {
         fullName: input.bookerName,
         phone: input.bookerPhone,
-        email: input.bookerEmail || `guest_${Date.now()}@sportplatform.com`, // Email giả định nếu không có
+        email: input.bookerEmail || `guest_${Date.now()}@sportplatform.com`,
         role: "USER",
         isActive: true,
       },
     });
   }
 
-  // 3. Lấy thông tin sân và tính giá (giống createBooking nhưng bỏ qua voucher)
+  // 3. Lấy thông tin slots
   const slots = await prisma.timeSlot.findMany({
     where: {
       id: { in: input.timeSlotIds },
-      courtId: input.courtId,
+      court: { clubId },
     },
+    include: {
+      court: {
+        include: {
+          club: { select: { slotDuration: true } },
+          pricings: { where: { isActive: true } }
+        }
+      }
+    }
   });
 
-  if (slots.length !== input.timeSlotIds.length) throw new Error("SLOT_NOT_FOUND");
+  if (slots.length !== input.timeSlotIds.length) throw new Error("SLOT_NOT_FOUND_OR_INVALID_CLUB");
   if (slots.some((s) => s.status !== "AVAILABLE")) throw new Error("SLOT_NOT_AVAILABLE");
 
-  const court = await prisma.court.findUnique({
-    where: { id: input.courtId },
-    include: { 
-      club: { select: { slotDuration: true } },
-      pricings: { where: { isActive: true } } 
-    },
-  });
-  if (!court) throw new Error("COURT_NOT_FOUND");
-
+  // 4. Tính toán giá tiền
   let totalAmount = 0;
   const slotPrices: { slotId: string; price: number }[] = [];
 
   for (const slot of slots) {
     const slotHour = slot.startTime.getHours();
     const slotDow = slot.startTime.getDay();
+    const court = slot.court;
+
     const pricing = court.pricings.find((p) => {
       const pStart = p.startTime.getHours();
       const pEnd = p.endTime.getHours();
       const pDow = p.dayOfWeek;
       return slotHour >= pStart && slotHour < pEnd && (pDow === null || pDow === slotDow);
     });
+
     const pricePerHour = pricing ? Number(pricing.pricePerHour) : 0;
     const price = (pricePerHour * court.club.slotDuration) / 60;
     totalAmount += price;
@@ -231,19 +226,19 @@ export async function createManualBooking(ownerId: string, clubId: string, input
   }
 
   try {
-    // 4. Thực hiện transaction
-    const booking = await prisma.$transaction(async (tx) => {
+    // 5. Transaction
+    return await prisma.$transaction(async (tx) => {
       // Lock slots
       await tx.timeSlot.updateMany({
         where: { id: { in: input.timeSlotIds } },
         data: { status: "BOOKED" },
       });
 
-      // Tạo booking với trạng thái COMPLETED nếu đã trả tiền
+      // Create Booking
       const newBooking = await tx.booking.create({
         data: {
           userId: user!.id,
-          courtId: input.courtId,
+          clubId,
           status: input.isPaid ? "COMPLETED" : "CONFIRMED",
           totalAmount,
           discountAmount: 0,
@@ -268,20 +263,18 @@ export async function createManualBooking(ownerId: string, clubId: string, input
           },
         },
         include: {
-          items: { include: { timeSlot: true } },
+          items: { include: { timeSlot: { include: { court: true } } } },
           payment: true,
         },
       });
 
+      // 6. Cập nhật thống kê khách hàng nếu đã trả tiền
+      if (input.isPaid) {
+        await updateClubCustomerStats(clubId, user!.id, totalAmount);
+      }
+
       return newBooking;
     });
-
-    // 5. Cập nhật thống kê khách hàng nếu là COMPLETED
-    if (input.isPaid) {
-      await updateClubCustomerStats(clubId, user.id, totalAmount);
-    }
-
-    return booking;
   } catch (error) {
     console.error("Error in createManualBooking:", error);
     throw error;
@@ -296,18 +289,19 @@ export async function getMyBookings(userId: string) {
     where: { userId },
     orderBy: { createdAt: "desc" },
     include: {
-      court: {
-        select: {
-          name: true,
-          sportType: true,
-          club: { select: { name: true, address: true } },
-        },
+      club: {
+        select: { name: true, address: true, logoUrl: true },
       },
-      items: { include: { timeSlot: true } },
+      items: {
+        include: {
+          timeSlot: {
+            include: { court: { select: { name: true, sportType: true } } }
+          }
+        }
+      },
       payment: { select: { status: true, method: true, amount: true } },
     },
   });
-
 }
 
 /**
@@ -340,11 +334,21 @@ export async function cancelBooking(bookingId: string, userId: string) {
     });
   });
 }
-// Lay danh sach booking theo id san
+
+/**
+ * Lấy danh sách booking theo id sân
+ */
 export async function getBookingByCourtId(courtId: string, userId: string) {
   try {
     return prisma.booking.findMany({
-      where: { courtId, userId },
+      where: {
+        userId,
+        items: {
+          some: {
+            timeSlot: { courtId }
+          }
+        }
+      },
       select: {
         id: true,
         bookerName: true,
@@ -357,17 +361,21 @@ export async function getBookingByCourtId(courtId: string, userId: string) {
         note: true,
         createdAt: true,
         updatedAt: true,
+        items: {
+          include: {
+            timeSlot: true
+          }
+        }
       }
-    })
-  }
-  catch (error) {
-    console.error("Error in getBookingByClubId:", error);
+    });
+  } catch (error) {
+    console.error("Error in getBookingByCourtId:", error);
     throw error;
   }
 }
 
 /**
- * Cập nhật trạng thái đơn đặt sân (Ví dụ: khách tới sân đá xong -> COMPLETED)
+ * Cập nhật trạng thái đơn đặt sân
  */
 export async function updateBookingStatus(
   bookingId: string,
@@ -376,18 +384,18 @@ export async function updateBookingStatus(
 ) {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
-    include: { court: { include: { club: { select: { ownerId: true } } } } },
+    include: { club: { select: { ownerId: true } } },
   });
 
   if (!booking) throw new Error("BOOKING_NOT_FOUND");
-  if (booking.court.club.ownerId !== ownerId) throw new Error("UNAUTHORIZED");
+  if (booking.club.ownerId !== ownerId) throw new Error("UNAUTHORIZED");
 
   return prisma.$transaction(async (tx) => {
     const updatedBooking = await tx.booking.update({
       where: { id: bookingId },
       data: { status },
       include: {
-        items: { include: { timeSlot: true } },
+        items: { include: { timeSlot: { include: { court: true } } } },
         payment: true,
       },
     });
@@ -412,19 +420,19 @@ export async function updateBookingStatus(
 }
 
 /**
- * Xác nhận thanh toán thủ công (Chủ sân duyệt khi nhận được chuyển khoản)
+ * Xác nhận thanh toán thủ công
  */
 export async function confirmPaymentManual(bookingId: string, ownerId: string) {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
-      court: { include: { club: { select: { id: true, ownerId: true } } } },
+      club: { select: { id: true, ownerId: true } },
       payment: true,
     },
   });
 
   if (!booking) throw new Error("BOOKING_NOT_FOUND");
-  if (booking.court.club.ownerId !== ownerId) throw new Error("UNAUTHORIZED");
+  if (booking.club.ownerId !== ownerId) throw new Error("UNAUTHORIZED");
   if (!booking.payment) throw new Error("PAYMENT_NOT_FOUND");
   if (booking.payment.status === "CONFIRMED") throw new Error("PAYMENT_ALREADY_CONFIRMED");
 
@@ -445,19 +453,21 @@ export async function confirmPaymentManual(bookingId: string, ownerId: string) {
       where: { id: bookingId },
       data: { status: "CONFIRMED" },
       include: {
-        items: { include: { timeSlot: true } },
+        items: { include: { timeSlot: { include: { court: true } } } },
         payment: true,
       },
     });
 
     // 3. Tích lũy điểm/cập nhật thống kê chi tiêu cho khách hàng
-    await updateClubCustomerStats(booking.court.club.id, booking.userId, Number(booking.finalAmount));
+    await updateClubCustomerStats(booking.club.id, booking.userId, Number(booking.finalAmount));
 
     return updatedBooking;
   });
 }
-// Lay danh sach theo tat ca don dat san cua chu san theo clb
-// Lấy danh sách tất cả đơn đặt sân của một CLB (Dành cho Chủ sân)
+
+/**
+ * Lấy danh sách tất cả đơn đặt sân của một CLB
+ */
 export async function getBookingByClubId(clubId: string, ownerId: string, date?: string) {
   // 1. Kiểm tra quyền sở hữu CLB
   const club = await prisma.club.findFirst({
@@ -468,26 +478,26 @@ export async function getBookingByClubId(clubId: string, ownerId: string, date?:
   // 2. Truy vấn danh sách booking
   return prisma.booking.findMany({
     where: {
-      items: {
-        some: {
-          timeSlot: {
-            court: { clubId }, // Lọc theo CLB
-            // Lọc theo ngày đặt sân (slots)
-            ...(date && {
+      clubId,
+      ...(date && {
+        items: {
+          some: {
+            timeSlot: {
               startTime: {
                 gte: new Date(`${date}T00:00:00.000+07:00`),
                 lte: new Date(`${date}T23:59:59.999+07:00`),
               }
-            })
+            }
           }
         }
-      }
+      })
     },
     include: {
-      court: true,
       items: {
         include: {
-          timeSlot: true
+          timeSlot: {
+            include: { court: true }
+          }
         }
       },
       payment: true,

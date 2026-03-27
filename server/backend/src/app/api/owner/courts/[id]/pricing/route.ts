@@ -25,13 +25,13 @@ async function checkCourtOwnership(userId: string, courtId: string) {
 // GET /api/owner/courts/[id]/pricing  → Lấy bảng giá sân
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { user, error } = await getAuthUser(req);
     if (error) return error;
 
-    const courtId = params.id;
+    const { id: courtId } = await params;
     const isOwner = await checkCourtOwnership(user.userId, courtId);
     if (!isOwner) return errorResponse("Bạn không có quyền quản lý sân này.", 403);
 
@@ -45,13 +45,13 @@ export async function GET(
 // POST /api/owner/courts/[id]/pricing  → Thêm/Cập nhật giá định kỳ (Regular)
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { user, error } = await getAuthUser(req);
     if (error) return error;
 
-    const courtId = params.id;
+    const { id: courtId } = await params;
     const isOwner = await checkCourtOwnership(user.userId, courtId);
     if (!isOwner) return errorResponse("Không có quyền", 403);
 
@@ -67,13 +67,13 @@ export async function POST(
 // PUT /api/owner/courts/[id]/pricing  → Thêm giá ngày lễ (Special)
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { user, error } = await getAuthUser(req);
     if (error) return error;
 
-    const courtId = params.id;
+    const { id: courtId } = await params;
     if (!await checkCourtOwnership(user.userId, courtId)) return errorResponse("Không có quyền", 403);
 
     const body = await req.json();
@@ -90,13 +90,13 @@ export async function PUT(
 // DELETE /api/owner/courts/[id]/pricing  → Xóa cấu hình giá cụ thể
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { user, error } = await getAuthUser(req);
     if (error) return error;
 
-    const courtId = params.id;
+    const { id: courtId } = await params;
     if (!await checkCourtOwnership(user.userId, courtId)) return errorResponse("Không có quyền", 403);
 
     const { searchParams } = new URL(req.url);

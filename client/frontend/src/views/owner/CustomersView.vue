@@ -4,7 +4,10 @@
     <div class="view-header">
       <div class="header-info">
         <h1 class="view-title">Hệ thống Khách hàng</h1>
-        <p class="view-subtitle">Quản lý cơ sở dữ liệu khách hàng, phân hạng và theo dõi lòng trung thành.</p>
+        <p class="view-subtitle">
+          Quản lý cơ sở dữ liệu khách hàng, phân hạng và theo dõi lòng trung
+          thành.
+        </p>
       </div>
       <div class="header-stats">
         <div class="h-stat-item">
@@ -23,19 +26,19 @@
     <div class="toolbar card">
       <div class="search-box">
         <span class="material-icons">search</span>
-        <input 
-          type="text" 
-          v-model="searchQuery" 
-          placeholder="Tìm khách hàng theo tên, số điện thoại hoặc email..." 
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Tìm khách hàng theo tên, số điện thoại hoặc email..."
         />
       </div>
       <div class="filter-group">
         <div class="filter-item">
           <label>Phân hạng:</label>
           <div class="tier-chips">
-            <button 
-              v-for="tier in tiers" 
-              :key="tier.id" 
+            <button
+              v-for="tier in tiers"
+              :key="tier.id"
               class="tier-chip"
               :class="[{ active: selectedTier === tier.id }, tier.id]"
               @click="selectedTier = tier.id"
@@ -69,12 +72,12 @@
                   <th>Lượt đặt</th>
                   <th>Chi tiêu</th>
                   <th>Trạng thái</th>
-                  <th></th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                <tr 
-                  v-for="customer in filteredCustomers" 
+                <tr
+                  v-for="customer in filteredCustomers"
                   :key="customer.id"
                   :class="{ selected: selectedCustomerId === customer.id }"
                   @click="selectedCustomerId = customer.id"
@@ -83,7 +86,10 @@
                     <div class="user-info-cell">
                       <div class="avatar-wrap">
                         <img :src="customer.avatar" :alt="customer.name" />
-                        <span class="online-indicator" v-if="customer.isOnline"></span>
+                        <span
+                          class="online-indicator"
+                          v-if="customer.isOnline"
+                        ></span>
                       </div>
                       <div class="user-meta">
                         <p class="u-name">{{ customer.name }}</p>
@@ -101,18 +107,261 @@
                     <p class="val-sub">Lượt</p>
                   </td>
                   <td>
-                    <p class="val-main price">{{ formatCurrency(customer.totalSpent) }}</p>
+                    <p class="val-main price">
+                      {{ formatCurrency(customer.totalSpent) }}
+                    </p>
                   </td>
                   <td>
                     <span class="status-badge" :class="customer.status">
-                      {{ customer.status === 'active' ? 'Hoạt động' : 'Đã khóa' }}
+                      {{
+                        customer.status === "active" ? "Hoạt động" : "Đã khóa"
+                      }}
                     </span>
                   </td>
-                  <td>
+                  <td class="align-middle text-center">
+                    <button
+                      class="btn btn-success me-2"
+                      data-bs-toggle="modal"
+                      data-bs-target="#updateModal"
+                    >
+                      Cập nhật
+                    </button>
+                    <button
+                      v-on:click="delete_Customer = customer"
+                      class="btn btn-danger"
+                      data-bs-toggle="modal"
+                      data-bs-target="#deleteModal"
+                    >
+                      Xoá
+                    </button>
+                  </td>
+
+                  <!-- Modal cập nhật -->
+                  <div
+                    class="modal fade"
+                    id="updateModal"
+                    tabindex="-1"
+                    aria-hidden="true"
+                  >
+                    <div class="modal-dialog modal-xl">
+                      <div class="modal-content">
+                        <div class="modal-header bg-primary">
+                          <h5 class="modal-title text-white">
+                            Cập Nhật Khách Hàng Mới
+                          </h5>
+                          <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                          ></button>
+                        </div>
+                        <div class="modal-body">
+                          <!-- Avatar -->
+                          <div class="text-center mb-3">
+                            <img
+                              :src="update_Customer.avatar"
+                              width="100"
+                              class="rounded-circle"
+                            />
+                          </div>
+
+                          <!-- Thông tin cơ bản -->
+                          <div class="mb-3">
+                            <label>Tên</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              v-model="update_Customer.name"
+                            />
+                          </div>
+
+                          <div class="mb-3">
+                            <label>SĐT</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              v-model="update_Customer.phone"
+                            />
+                          </div>
+
+                          <div class="mb-3">
+                            <label>Email</label>
+                            <input
+                              type="email"
+                              class="form-control"
+                              v-model="update_Customer.email"
+                            />
+                          </div>
+
+                          <div class="mb-3">
+                            <label>Avatar URL</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              v-model="update_Customer.avatar"
+                            />
+                          </div>
+
+                          <!-- Tier -->
+                          <div class="mb-3">
+                            <label>Hạng</label>
+                            <select
+                              class="form-control"
+                              v-model="update_Customer.tier"
+                            >
+                              <option value="silver">Silver</option>
+                              <option value="gold">Gold</option>
+                              <option value="platinum">Bronze</option>
+                            </select>
+                          </div>
+
+                          <!-- Status -->
+                          <div class="mb-3">
+                            <label>Trạng thái</label>
+                            <select
+                              class="form-control"
+                              v-model="update_Customer.status"
+                            >
+                              <option value="active">Hoạt động</option>
+                              <option value="inactive">Đã Khoá</option>
+                            </select>
+                          </div>
+
+                          <!-- Online -->
+                          <div class="form-check mb-3">
+                            <input
+                              type="checkbox"
+                              class="form-check-input"
+                              v-model="update_Customer.isOnline"
+                            />
+                            <label class="form-check-label">Đang online</label>
+                          </div>
+
+                          <!-- Điểm -->
+                          <div class="mb-3">
+                            <label>Điểm</label>
+                            <input
+                              type="number"
+                              class="form-control"
+                              v-model="update_Customer.points"
+                            />
+                          </div>
+
+                          <!-- Tổng -->
+                          <div class="row">
+                            <div class="col">
+                              <label>Tổng booking</label>
+                              <input
+                                type="number"
+                                class="form-control"
+                                v-model="update_Customer.totalBookings"
+                              />
+                            </div>
+                            <div class="col">
+                              <label>Tổng tiền</label>
+                              <input
+                                type="number"
+                                class="form-control"
+                                v-model="update_Customer.totalSpent"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- 🔥 History -->
+                          <hr />
+                          <h5>Lịch sử đặt sân</h5>
+
+                          <table class="table table-bordered mt-2">
+                            <thead>
+                              <tr>
+                                <th>Sân</th>
+                                <th>Ngày</th>
+                                <th>Giờ</th>
+                                <th>Giá</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr
+                              >
+                                <td><input type="number"></td>
+                                <td><input type="date"></td>
+                                <td><input type="time"></td>
+                                <td><input type="number"></td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <div class="modal-footer">
+                          <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                          >
+                            Đóng
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-primary"
+                            v-on:click="updateCustomer()"
+                            data-bs-dismiss="modal"
+                          >
+                            Xác nhận
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Modal Xóa khách hàng-->
+                  <div
+                    class="modal fade"
+                    id="deleteModal"
+                    tabindex="-1"
+                    aria-hidden="true"
+                  >
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title"><b>Xóa Khách Hàng</b></h5>
+                          <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                          ></button>
+                        </div>
+                        <div class="modal-body">
+                          <div class="alert alert-danger" role="alert">
+                            Bạn có chắc chắn muốn xóa khách hàng
+                            <strong>{{ delete_Customer.name }}</strong
+                            >?
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                          >
+                            Đóng
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-danger"
+                            v-on:click="deleteCustomer()"
+                            data-bs-dismiss="modal"
+                          >
+                            Xác nhận
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- <td>
                     <button class="btn-more">
                       <span class="material-icons">more_vert</span>
                     </button>
-                  </td>
+                  </td> -->
                 </tr>
               </tbody>
             </table>
@@ -125,7 +374,10 @@
         <div class="card detail-card" v-if="selectedCustomer">
           <div class="detail-header">
             <div class="u-profile-big">
-              <img :src="selectedCustomer.avatar" :alt="selectedCustomer.name" />
+              <img
+                :src="selectedCustomer.avatar"
+                :alt="selectedCustomer.name"
+              />
               <div class="u-profile-info">
                 <h3>{{ selectedCustomer.name }}</h3>
                 <p>{{ selectedCustomer.email }}</p>
@@ -141,7 +393,9 @@
             </div>
             <div class="d-stat-box">
               <span class="material-icons">payments</span>
-              <p class="d-val">{{ formatShortCurrency(selectedCustomer.totalSpent) }}</p>
+              <p class="d-val">
+                {{ formatShortCurrency(selectedCustomer.totalSpent) }}
+              </p>
               <p class="d-label">Tổng chi</p>
             </div>
             <div class="d-stat-box">
@@ -154,8 +408,14 @@
           <div class="detail-section">
             <h4 class="section-title">Lịch sử đặt sân gần đây</h4>
             <div class="history-list">
-              <div v-for="booking in selectedCustomer.history" :key="booking.id" class="history-item">
-                <div class="h-icon"><span class="material-icons">sports_soccer</span></div>
+              <div
+                v-for="booking in selectedCustomer.history"
+                :key="booking.id"
+                class="history-item"
+              >
+                <div class="h-icon">
+                  <span class="material-icons">sports_soccer</span>
+                </div>
                 <div class="h-text">
                   <p class="h-court">{{ booking.courtName }}</p>
                   <p class="h-date">{{ booking.date }} • {{ booking.time }}</p>
@@ -193,130 +453,207 @@
 
 <script>
 export default {
-  name: 'OwnerCustomersView',
+  name: "OwnerCustomersView",
   data() {
     return {
-      searchQuery: '',
-      selectedTier: 'all',
-      sortBy: 'recent',
+      searchQuery: "",
+      selectedTier: "all",
+      sortBy: "recent",
       selectedCustomerId: 1,
+      delete_Customer: {},
+      update_Customer: {},
       tiers: [
-        { id: 'all', label: 'Tất cả' },
-        { id: 'gold', label: 'Vàng' },
-        { id: 'silver', label: 'Bạc' },
-        { id: 'bronze', label: 'Đồng' }
+        { id: "all", label: "Tất cả" },
+        { id: "gold", label: "Vàng" },
+        { id: "silver", label: "Bạc" },
+        { id: "bronze", label: "Đồng" },
       ],
       customers: [
-        { 
-          id: 1, 
-          name: 'Nguyễn Đình Vĩ', 
-          phone: '0987 654 321', 
-          email: 'vi.nguyen@gmail.com',
-          avatar: 'https://ui-avatars.com/api/?name=Nguyen+Dinh+Vi&background=0d9488&color=fff',
-          tier: 'gold',
+        {
+          id: 1,
+          name: "Nguyễn Đình Vĩ",
+          phone: "0987 654 321",
+          email: "vi.nguyen@gmail.com",
+          avatar:
+            "https://ui-avatars.com/api/?name=Nguyen+Dinh+Vi&background=0d9488&color=fff",
+          tier: "gold",
           totalBookings: 42,
           totalSpent: 15400000,
-          status: 'active',
+          status: "active",
           isOnline: true,
           points: 1250,
           history: [
-            { id: 101, courtName: 'Sân A1 (Thành Phát)', date: '18/03/2026', time: '18:00', price: 350000 },
-            { id: 102, courtName: 'Sân B1 (Viettel)', date: '15/03/2026', time: '19:30', price: 450000 },
-            { id: 103, courtName: 'Sân A1 (Thành Phát)', date: '10/03/2026', time: '17:00', price: 350000 }
-          ]
+            {
+              id: 101,
+              courtName: "Sân A1 (Thành Phát)",
+              date: "18/03/2026",
+              time: "18:00",
+              price: 350000,
+            },
+            {
+              id: 102,
+              courtName: "Sân B1 (Viettel)",
+              date: "15/03/2026",
+              time: "19:30",
+              price: 450000,
+            },
+            {
+              id: 103,
+              courtName: "Sân A1 (Thành Phát)",
+              date: "10/03/2026",
+              time: "17:00",
+              price: 350000,
+            },
+          ],
         },
-        { 
-          id: 2, 
-          name: 'Phan Tuấn Anh', 
-          phone: '0912 333 888', 
-          email: 'anh.phan@yahoo.com',
-          avatar: 'https://ui-avatars.com/api/?name=Phan+Tuan+Anh&background=3b82f6&color=fff',
-          tier: 'silver',
+        {
+          id: 2,
+          name: "Phan Tuấn Anh",
+          phone: "0912 333 888",
+          email: "anh.phan@yahoo.com",
+          avatar:
+            "https://ui-avatars.com/api/?name=Phan+Tuan+Anh&background=3b82f6&color=fff",
+          tier: "silver",
           totalBookings: 18,
           totalSpent: 6200000,
-          status: 'active',
+          status: "active",
           isOnline: false,
           points: 480,
           history: [
-            { id: 201, courtName: 'Sân A2 (Thành Phát)', date: '17/03/2026', time: '20:00', price: 300000 }
-          ]
+            {
+              id: 201,
+              courtName: "Sân A2 (Thành Phát)",
+              date: "17/03/2026",
+              time: "20:00",
+              price: 300000,
+            },
+          ],
         },
-        { 
-          id: 3, 
-          name: 'Lê Văn Cường', 
-          phone: '0345 888 999', 
-          email: 'cuong.le@outlook.com',
-          avatar: 'https://ui-avatars.com/api/?name=Le+Van+Cuong&background=fbbf24&color=fff',
-          tier: 'bronze',
+        {
+          id: 3,
+          name: "Lê Văn Cường",
+          phone: "0345 888 999",
+          email: "cuong.le@outlook.com",
+          avatar:
+            "https://ui-avatars.com/api/?name=Le+Van+Cuong&background=fbbf24&color=fff",
+          tier: "bronze",
           totalBookings: 5,
           totalSpent: 1850000,
-          status: 'active',
+          status: "active",
           isOnline: true,
           points: 120,
-          history: []
+          history: [],
         },
-        { 
-          id: 4, 
-          name: 'Hoàng Minh Thu', 
-          phone: '0901 000 111', 
-          email: 'thu.hoang@gmail.com',
-          avatar: 'https://ui-avatars.com/api/?name=Hoang+Minh+Thu&background=ec4899&color=fff',
-          tier: 'gold',
+        {
+          id: 4,
+          name: "Hoàng Minh Thu",
+          phone: "0901 000 111",
+          email: "thu.hoang@gmail.com",
+          avatar:
+            "https://ui-avatars.com/api/?name=Hoang+Minh+Thu&background=ec4899&color=fff",
+          tier: "gold",
           totalBookings: 35,
           totalSpent: 12800000,
-          status: 'blocked',
+          status: "blocked",
           isOnline: false,
           points: 980,
-          history: []
-        }
-      ]
-    }
+          history: [],
+        },
+      ],
+    };
   },
   computed: {
     selectedCustomer() {
-      return this.customers.find(c => c.id === this.selectedCustomerId);
+      return this.customers.find((c) => c.id === this.selectedCustomerId);
     },
     filteredCustomers() {
-      let result = this.customers.filter(c => {
-        const matchesQuery = c.name.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
-                             c.phone.includes(this.searchQuery) ||
-                             c.email.toLowerCase().includes(this.searchQuery.toLowerCase());
-        const matchesTier = this.selectedTier === 'all' || c.tier === this.selectedTier;
+      let result = this.customers.filter((c) => {
+        const matchesQuery =
+          c.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          c.phone.includes(this.searchQuery) ||
+          c.email.toLowerCase().includes(this.searchQuery.toLowerCase());
+        const matchesTier =
+          this.selectedTier === "all" || c.tier === this.selectedTier;
         return matchesQuery && matchesTier;
       });
 
-      if (this.sortBy === 'spending') {
+      if (this.sortBy === "spending") {
         result.sort((a, b) => b.totalSpent - a.totalSpent);
-      } else if (this.sortBy === 'bookings') {
+      } else if (this.sortBy === "bookings") {
         result.sort((a, b) => b.totalBookings - a.totalBookings);
       }
-      
+
       return result;
-    }
+    },
+  },
+  mounted() {
+    this.getCustomerDetails();
   },
   methods: {
     getTierLabel(tier) {
-      const labels = { gold: 'Vàng', silver: 'Bạc', bronze: 'Đồng' };
+      const labels = { gold: "Vàng", silver: "Bạc", bronze: "Đồng" };
       return labels[tier] || tier;
     },
     formatCurrency(val) {
-      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(val);
     },
     formatShortCurrency(val) {
-      if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M';
-      if (val >= 1000) return (val / 1000).toFixed(0) + 'K';
+      if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
+      if (val >= 1000) return (val / 1000).toFixed(0) + "K";
       return val;
-    }
-  }
-}
+    },
+    //lấy thông tin chi tiết khách hàng
+    getCustomerDetails() {
+      this.$router.push("/owner/customers", this.customers);
+      then((response) => {
+        this.customers = response.data.data;
+      }).catch((error) => {
+        console.error("Lỗi khi lấy thông tin khách hàng:", error);
+      });
+    },
+    //Xóa khách hàng
+    deleteCustomer() {
+      this.$router.push("/owner/customers", this.delete_Customer);
+      then((response) => {
+        if (response.data.status) {
+          alert(response.data.message);
+          this.getCustomerDetails();
+        } else {
+          alert("Xóa khách hàng thất bại!");
+        }
+      }).catch((error) => {
+        console.error("Lỗi khi xóa khách hàng:", error);
+        alert("Xóa khách hàng thất bại. Vui lòng thử lại.");
+      });
+    },
+    //Cập nhật khách hàng
+    updateCustomer() {
+      this.$router.push("/owner/customers", this.update_Customer);
+      then((response) => {
+        if (response.data.status) {
+          alert(response.data.message);
+          this.getCustomerDetails();
+        } else {
+          alert("Cập nhật khách hàng thất bại!");
+        }
+      }).catch((error) => {
+        console.error("Lỗi khi cập nhật khách hàng:", error);
+        alert("Cập nhật khách hàng thất bại. Vui lòng thử lại.");
+      });
+    },
+  },
+};
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap');
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap");
 
 .customers-view {
-  font-family: 'DM Sans', sans-serif;
+  font-family: "DM Sans", sans-serif;
   color: #0f1623;
   display: flex;
   flex-direction: column;
@@ -325,15 +662,21 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card {
   background: white;
   border-radius: 24px;
   border: 1px solid #eaecf2;
-  box-shadow: 0 4px 20px rgba(15,22,35,0.04);
+  box-shadow: 0 4px 20px rgba(15, 22, 35, 0.04);
 }
 
 /* ── Header ────────────────────────────────────────────────── */
@@ -344,7 +687,7 @@ export default {
 }
 
 .view-title {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: "Barlow Condensed", sans-serif;
   font-size: 32px;
   font-weight: 800;
   margin: 0 0 4px 0;
@@ -367,11 +710,31 @@ export default {
   border: 1px solid #eaecf2;
 }
 
-.h-stat-item { display: flex; flex-direction: column; gap: 2px; }
-.h-stat-label { font-size: 12px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
-.h-stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; color: #1e293b; }
-.text-green { color: #16a34a !important; }
-.h-stat-divider { width: 1px; height: 40px; background: #f1f5f9; }
+.h-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.h-stat-label {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.h-stat-val {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: #1e293b;
+}
+.text-green {
+  color: #16a34a !important;
+}
+.h-stat-divider {
+  width: 1px;
+  height: 40px;
+  background: #f1f5f9;
+}
 
 /* ── Toolbar ───────────────────────────────────────────────── */
 .toolbar {
@@ -413,11 +776,25 @@ export default {
   box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.08);
 }
 
-.filter-group { display: flex; gap: 32px; }
-.filter-item { display: flex; align-items: center; gap: 12px; }
-.filter-item label { font-size: 13px; font-weight: 700; color: #64748b; }
+.filter-group {
+  display: flex;
+  gap: 32px;
+}
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.filter-item label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
 
-.tier-chips { display: flex; gap: 8px; }
+.tier-chips {
+  display: flex;
+  gap: 8px;
+}
 .tier-chip {
   padding: 8px 16px;
   border-radius: 100px;
@@ -430,10 +807,26 @@ export default {
   transition: all 0.2s;
 }
 
-.tier-chip.active.all { background: #1e293b; color: white; border-color: #1e293b; }
-.tier-chip.active.gold { background: #f59e0b; color: white; border-color: #f59e0b; }
-.tier-chip.active.silver { background: #94a3b8; color: white; border-color: #94a3b8; }
-.tier-chip.active.bronze { background: #b45309; color: white; border-color: #b45309; }
+.tier-chip.active.all {
+  background: #1e293b;
+  color: white;
+  border-color: #1e293b;
+}
+.tier-chip.active.gold {
+  background: #f59e0b;
+  color: white;
+  border-color: #f59e0b;
+}
+.tier-chip.active.silver {
+  background: #94a3b8;
+  color: white;
+  border-color: #94a3b8;
+}
+.tier-chip.active.bronze {
+  background: #b45309;
+  color: white;
+  border-color: #b45309;
+}
 
 .filter-item select {
   padding: 10px 16px;
@@ -452,10 +845,18 @@ export default {
   align-items: flex-start;
 }
 
-.list-card { padding: 0; overflow: hidden; }
+.list-card {
+  padding: 0;
+  overflow: hidden;
+}
 
-.table-wrap { width: 100%; }
-.customer-table { width: 100%; border-collapse: collapse; }
+.table-wrap {
+  width: 100%;
+}
+.customer-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 .customer-table th {
   text-align: left;
   padding: 16px 24px;
@@ -472,8 +873,12 @@ export default {
   transition: all 0.2s;
 }
 
-.customer-table tbody tr:hover { background: #f8fafc; }
-.customer-table tbody tr.selected { background: #f0fdf4; }
+.customer-table tbody tr:hover {
+  background: #f8fafc;
+}
+.customer-table tbody tr.selected {
+  background: #f0fdf4;
+}
 
 .customer-table td {
   padding: 16px 24px;
@@ -481,17 +886,44 @@ export default {
   vertical-align: middle;
 }
 
-.user-info-cell { display: flex; align-items: center; gap: 16px; }
-.avatar-wrap { position: relative; width: 44px; height: 44px; }
-.avatar-wrap img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.user-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.avatar-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+.avatar-wrap img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
 .online-indicator {
-  position: absolute; bottom: 0; right: 0;
-  width: 12px; height: 12px;
-  background: #16a34a; border: 2px solid white; border-radius: 50%;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background: #16a34a;
+  border: 2px solid white;
+  border-radius: 50%;
 }
 
-.u-name { font-weight: 700; font-size: 15px; margin: 0; color: #1e293b; }
-.u-phone { font-size: 12px; color: #94a3b8; margin: 0; }
+.u-name {
+  font-weight: 700;
+  font-size: 15px;
+  margin: 0;
+  color: #1e293b;
+}
+.u-phone {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
 
 .tier-badge {
   display: inline-block;
@@ -501,28 +933,63 @@ export default {
   font-weight: 800;
   text-transform: uppercase;
 }
-.tier-badge.gold { background: #fffbeb; color: #b45309; }
-.tier-badge.silver { background: #f1f5f9; color: #475569; }
-.tier-badge.bronze { background: #fef3c7; color: #92400e; }
+.tier-badge.gold {
+  background: #fffbeb;
+  color: #b45309;
+}
+.tier-badge.silver {
+  background: #f1f5f9;
+  color: #475569;
+}
+.tier-badge.bronze {
+  background: #fef3c7;
+  color: #92400e;
+}
 
-.val-main { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; margin: 0; color: #1e293b; }
-.val-main.price { color: #16a34a; }
-.val-sub { font-size: 11px; color: #94a3b8; font-weight: 700; margin: 0; }
+.val-main {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+  color: #1e293b;
+}
+.val-main.price {
+  color: #16a34a;
+}
+.val-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 700;
+  margin: 0;
+}
 
 .status-badge {
-  font-size: 12px; font-weight: 600;
+  font-size: 12px;
+  font-weight: 600;
 }
-.status-badge.active { color: #16a34a; }
-.status-badge.blocked { color: #ef4444; }
+.status-badge.active {
+  color: #16a34a;
+}
+.status-badge.blocked {
+  color: #ef4444;
+}
 
 .btn-more {
-  width: 32px; height: 32px;
-  border: none; background: transparent;
-  color: #94a3b8; cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
   border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.btn-more:hover { background: #f1f5f9; color: #1e293b; }
+.btn-more:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
 
 /* ── Detail Sidebar ────────────────────────────────────────── */
 .detail-card {
@@ -544,14 +1011,24 @@ export default {
 }
 
 .u-profile-big img {
-  width: 100px; height: 100px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   border: 4px solid #f8fafc;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.u-profile-info h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; margin: 0 0 4px 0; }
-.u-profile-info p { font-size: 14px; color: #64748b; margin: 0; }
+.u-profile-info h3 {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+}
+.u-profile-info p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
 
 .detail-stats-grid {
   display: grid;
@@ -567,64 +1044,160 @@ export default {
   text-align: center;
 }
 
-.d-stat-box span { font-size: 20px; color: #16a34a; margin-bottom: 8px; }
-.d-val { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; margin: 0; color: #1e293b; }
-.d-label { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin: 0; }
+.d-stat-box span {
+  font-size: 20px;
+  color: #16a34a;
+  margin-bottom: 8px;
+}
+.d-val {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+  color: #1e293b;
+}
+.d-label {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+}
 
 .section-title {
-  font-size: 13px; font-weight: 800;
-  text-transform: uppercase; letter-spacing: 0.05em;
-  color: #94a3b8; margin: 0 0 16px 0;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin: 0 0 16px 0;
 }
 
-.history-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
 .history-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px; background: #fff;
-  border: 1px solid #f1f5f9; border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
 }
-.h-icon { width: 36px; height: 36px; background: #f0fdf4; color: #16a34a; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-.h-icon span { font-size: 18px; }
-.h-text { flex: 1; }
-.h-court { font-size: 13px; font-weight: 700; margin: 0; color: #1e293b; }
-.h-date { font-size: 11px; color: #94a3b8; margin: 0; }
-.h-amount { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 14px; color: #1e293b; }
+.h-icon {
+  width: 36px;
+  height: 36px;
+  background: #f0fdf4;
+  color: #16a34a;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.h-icon span {
+  font-size: 18px;
+}
+.h-text {
+  flex: 1;
+}
+.h-court {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  color: #1e293b;
+}
+.h-date {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+.h-amount {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  color: #1e293b;
+}
 
-.detail-actions { display: flex; flex-direction: column; gap: 12px; }
-.btn-detail-action.message {
-  width: 100%; height: 48px;
-  background: #1e293b; color: white;
-  border: none; border-radius: 12px;
-  font-weight: 700; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
+.detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
-.action-row { display: flex; gap: 12px; }
+.btn-detail-action.message {
+  width: 100%;
+  height: 48px;
+  background: #1e293b;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.action-row {
+  display: flex;
+  gap: 12px;
+}
 .btn-detail-secondary {
-  flex: 1; height: 44px;
-  background: white; border: 1px solid #e2e8f0;
-  border-radius: 12px; font-size: 13px; font-weight: 700;
-  color: #475569; display: flex; align-items: center; justify-content: center; gap: 8px;
+  flex: 1;
+  height: 44px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   cursor: pointer;
 }
-.btn-detail-secondary.danger { color: #ef4444; }
-.btn-detail-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
+.btn-detail-secondary.danger {
+  color: #ef4444;
+}
+.btn-detail-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
 
 .detail-empty {
   height: 400px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  color: #94a3b8; gap: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  gap: 16px;
 }
-.detail-empty span { font-size: 64px; }
+.detail-empty span {
+  font-size: 64px;
+}
 
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 1280px) {
-  .customers-layout { grid-template-columns: 1fr; }
-  .customer-detail-side { display: none; } /* Could be a modal on smaller screens */
+  .customers-layout {
+    grid-template-columns: 1fr;
+  }
+  .customer-detail-side {
+    display: none;
+  } /* Could be a modal on smaller screens */
 }
 
 @media (max-width: 1024px) {
-  .toolbar { flex-direction: column; align-items: stretch; }
-  .filter-group { flex-wrap: wrap; }
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-group {
+    flex-wrap: wrap;
+  }
 }
 </style>

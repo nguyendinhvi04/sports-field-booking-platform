@@ -14,10 +14,14 @@
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "date-fns": "^4.1.0",
+    "jquery": "^4.0.0",
+    "mapbox-gl": "^3.20.0",
+    "popper.js": "^1.16.1",
     "vue": "^3.5.29",
     "vue-router": "^4.0.13"
   },
   "devDependencies": {
+    "@types/mapbox-gl": "^3.4.1",
     "@vitejs/plugin-vue": "^6.0.4",
     "vite": "^7.3.1",
     "vite-plugin-vue-devtools": "^8.0.6"
