@@ -1,9 +1,7 @@
-// Sports Field Booking Platform - Prisma Schema
-// Updated: 2026-03-12
-
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions"]
 }
 
 datasource db {
@@ -11,9 +9,556 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================
-// ENUMS
-// ============================================================
+model User {
+  id                   String          @id @default(cuid())
+  email                String          @unique
+  phone                String?         @unique
+  passwordHash         String?
+  fullName             String
+  avatarUrl            String?
+  role                 Role            @default(USER)
+  isActive             Boolean         @default(true)
+  isEmailVerified      Boolean         @default(false)
+  googleId             String?         @unique
+  facebookId           String?         @unique
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  lastLoginAt          DateTime?
+  isVerified           Boolean         @default(false)
+  deletedAt            DateTime?
+  failedLoginAttempts  Int             @default(0)
+  lastLoginIp          String?
+  lastPasswordChangeAt DateTime?
+  lockoutUntil         DateTime?
+  auditLogs            AuditLog[]
+  bookings             Booking[]
+  customerProfiles     ClubCustomer[]
+  ownedClubs           Club[]
+  favoriteClubs        FavoriteClub[]
+  favoritesCourts      FavoriteCourt[]
+  notifications        Notification[]
+  ownerProfile         OwnerProfile?
+  passwordResets       PasswordReset[]
+  reviews              Review[]
+  sessions             Session[]
+  profile              UserProfile?
+  voucherUsages        VoucherUsage[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  address     String?
+  dateOfBirth DateTime?
+  gender      String?
+  bio         String?
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  isRevoked Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+}
+
+model Club {
+  id             String         @id @default(cuid())
+  ownerId        String
+  name           String
+  slug           String         @unique
+  description    String?
+  address        String
+  ward           String?
+  district       String
+  city           String
+  latitude       Float?
+  longitude      Float?
+  phone          String?
+  email          String?
+  website        String?
+  logoUrl        String?
+  coverImageUrl  String?
+  approvalStatus ApprovalStatus @default(PENDING)
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  slotDuration   Int            @default(60)
+  deletedAt      DateTime?
+  bookings       Booking[]
+  amenities      ClubAmenity[]
+  customers      ClubCustomer[]
+  images         ClubImage[]
+  owner          User           @relation(fields: [ownerId], references: [id])
+  courts         Court[]
+  favoredBy      FavoriteClub[]
+  openingHours   OpeningHour[]
+  posts          Post[]
+  vouchers       Voucher[]
+
+  @@index([name])
+  @@index([address])
+  @@index([slug])
+  @@map("clubs")
+}
+
+model ClubImage {
+  id        String   @id @default(cuid())
+  clubId    String
+  url       String
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("club_images")
+}
+
+model OpeningHour {
+  id        String   @id @default(cuid())
+  clubId    String
+  dayOfWeek Int
+  openTime  DateTime @db.Time(6)
+  closeTime DateTime @db.Time(6)
+  isClosed  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, dayOfWeek])
+  @@map("opening_hours")
+}
+
+model Amenity {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  icon      String?
+  createdAt DateTime      @default(now())
+  clubs     ClubAmenity[]
+  services  BookingService[]
+
+  @@map("amenities")
+}
+
+model ClubAmenity {
+  id        String   @id @default(cuid())
+  clubId    String
+  amenityId String
+  note      String?
+  price     Decimal  @default(0) @db.Decimal(12, 2)
+  createdAt DateTime @default(now())
+  amenity   Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, amenityId])
+  @@map("club_amenities")
+}
+
+model Court {
+  id              String               @id @default(cuid())
+  clubId          String
+  name            String
+  description     String?
+  sportType       SportType
+  status          CourtStatus          @default(ACTIVE)
+  capacity        Int?
+  surface         String?
+  indoorOutdoor   String?
+  sortOrder       Int                  @default(0)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  deletedAt       DateTime?
+  bookings        Booking[]
+  images          CourtImage[]
+  pricings        CourtPricing[]
+  club            Club                 @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  favoredBy       FavoriteCourt[]
+  specialPricings SpecialDatePricing[]
+  timeSlots       TimeSlot[]
+
+  @@index([name])
+  @@map("courts")
+}
+
+model CourtImage {
+  id        String   @id @default(cuid())
+  courtId   String
+  url       String
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  court     Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@map("court_images")
+}
+
+model CourtPricing {
+  id           String   @id @default(cuid())
+  courtId      String
+  dayOfWeek    Int?
+  pricePerHour Decimal  @db.Decimal(12, 2)
+  label        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  startTime    DateTime @db.Time(6)
+  endTime      DateTime @db.Time(6)
+  court        Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@map("court_pricings")
+}
+
+model SpecialDatePricing {
+  id           String   @id @default(cuid())
+  courtId      String
+  specificDate DateTime @db.Date
+  startTime    DateTime @db.Time(6)
+  endTime      DateTime @db.Time(6)
+  pricePerHour Decimal  @db.Decimal(12, 2)
+  note         String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  court        Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@map("special_date_pricings")
+}
+
+model TimeSlot {
+  id           String         @id @default(cuid())
+  courtId      String
+  status       TimeSlotStatus @default(AVAILABLE)
+  lockedBy     String?
+  lockedAt     DateTime?
+  note         String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  startTime    DateTime
+  endTime      DateTime
+  bookingItems BookingItem[]
+  court        Court          @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@unique([courtId, startTime])
+  @@map("time_slots")
+}
+
+model Booking {
+  id             String                 @id @default(cuid())
+  userId         String
+  courtId        String?
+  bookingCode    String                 @unique @default(cuid())
+  status         BookingStatus          @default(PENDING)
+  totalAmount    Decimal                @db.Decimal(12, 2)
+  discountAmount Decimal                @default(0) @db.Decimal(12, 2)
+  finalAmount    Decimal                @db.Decimal(12, 2)
+  note           String?
+  voucherId      String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  bookerName     String
+  bookerPhone    String
+  bookerEmail    String?
+  clubId         String?
+  deletedAt      DateTime?
+  items          BookingItem[]
+  services       BookingService[]
+  statusHistory  BookingStatusHistory[]
+  club           Club?                  @relation(fields: [clubId], references: [id])
+  courts         Court?                 @relation(fields: [courtId], references: [id])
+  user           User                   @relation(fields: [userId], references: [id])
+  voucher        Voucher?               @relation(fields: [voucherId], references: [id])
+  notifications  Notification[]
+  payment        Payment?
+  review         Review?
+
+  @@map("bookings")
+}
+
+model BookingItem {
+  id         String   @id @default(cuid())
+  bookingId  String
+  timeSlotId String
+  price      Decimal  @db.Decimal(12, 2)
+  createdAt  DateTime @default(now())
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  timeSlot   TimeSlot @relation(fields: [timeSlotId], references: [id])
+
+  @@unique([bookingId, timeSlotId])
+  @@map("booking_items")
+}
+
+model BookingService {
+  id        String   @id @default(cuid())
+  bookingId String
+  amenityId String
+  price     Decimal  @db.Decimal(12, 2)
+  quantity  Int      @default(1)
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amenity   Amenity  @relation(fields: [amenityId], references: [id])
+
+  @@unique([bookingId, amenityId])
+  @@map("booking_services")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  bookingId       String        @unique
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  amount          Decimal       @db.Decimal(12, 2)
+  transactionRef  String?       @unique
+  bankName        String?
+  accountNumber   String?
+  transferContent String?
+  proofImageUrl   String?
+  paidAt          DateTime?
+  confirmedAt     DateTime?
+  confirmedBy     String?
+  note            String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  refundAmount    Decimal?      @db.Decimal(12, 2)
+  refundNote      String?
+  refundReason    String?
+  refundRequestAt DateTime?
+  refundReviewAt  DateTime?
+  refundReviewBy  String?
+  refundStatus    RefundStatus  @default(NONE)
+  refundedAt      DateTime?
+  booking         Booking       @relation(fields: [bookingId], references: [id])
+
+  @@map("payments")
+}
+
+model Review {
+  id        String        @id @default(cuid())
+  userId    String
+  bookingId String        @unique
+  courtId   String?
+  clubId    String?
+  rating    Int
+  comment   String?
+  isVisible Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+  images    ReviewImage[]
+  booking   Booking       @relation(fields: [bookingId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
+
+  @@map("reviews")
+}
+
+model ReviewImage {
+  id        String   @id @default(cuid())
+  reviewId  String
+  url       String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@map("review_images")
+}
+
+model Voucher {
+  id             String         @id @default(cuid())
+  clubId         String?
+  code           String         @unique
+  title          String
+  description    String?
+  type           VoucherType
+  value          Decimal        @db.Decimal(12, 2)
+  minOrderAmount Decimal?       @db.Decimal(12, 2)
+  maxDiscount    Decimal?       @db.Decimal(12, 2)
+  usageLimit     Int?
+  usagePerUser   Int            @default(1)
+  usedCount      Int            @default(0)
+  startDate      DateTime
+  endDate        DateTime
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+  bookings       Booking[]
+  usages         VoucherUsage[]
+  club           Club?          @relation(fields: [clubId], references: [id])
+
+  @@map("vouchers")
+}
+
+model VoucherUsage {
+  id        String   @id @default(cuid())
+  voucherId String
+  userId    String
+  usedAt    DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  voucher   Voucher  @relation(fields: [voucherId], references: [id])
+
+  @@unique([voucherId, userId])
+  @@map("voucher_usages")
+}
+
+model FavoriteCourt {
+  id        String   @id @default(cuid())
+  userId    String
+  courtId   String
+  createdAt DateTime @default(now())
+  court     Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courtId])
+  @@map("favorite_courts")
+}
+
+model FavoriteClub {
+  id        String   @id @default(cuid())
+  userId    String
+  clubId    String
+  createdAt DateTime @default(now())
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clubId])
+  @@map("favorite_clubs")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  bookingId String?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  booking   Booking?         @relation(fields: [bookingId], references: [id])
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Post {
+  id            String     @id @default(cuid())
+  clubId        String
+  type          PostType
+  status        PostStatus @default(ACTIVE)
+  title         String
+  content       String
+  imageUrl      String?
+  linkedCourtId String?
+  linkedDate    DateTime?
+  expiresAt     DateTime?
+  viewCount     Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime?
+  club          Club       @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("posts")
+}
+
+model ClubCustomer {
+  id            String       @id @default(cuid())
+  clubId        String
+  userId        String
+  tier          CustomerTier @default(NORMAL)
+  totalBookings Int          @default(0)
+  totalCancels  Int          @default(0)
+  totalSpent    Decimal      @default(0) @db.Decimal(14, 2)
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  club          Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, userId])
+  @@map("club_customers")
+}
+
+model OwnerProfile {
+  id                 String         @id @default(cuid())
+  userId             String         @unique
+  idCardNumber       String?
+  idCardFrontUrl     String?
+  idCardBackUrl      String?
+  businessLicenseUrl String?
+  taxCode            String?
+  bankName           String?
+  bankAccountNumber  String?
+  bankAccountName    String?
+  cancellationPolicy String?
+  kycStatus          ApprovalStatus @default(PENDING)
+  kycReviewedAt      DateTime?
+  kycReviewedBy      String?
+  kycNote            String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("owner_profiles")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model BookingStatusHistory {
+  id        String        @id @default(cuid())
+  bookingId String
+  status    BookingStatus
+  note      String?
+  changedBy String?
+  createdAt DateTime      @default(now())
+  booking   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("booking_status_history")
+}
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_configs")
+}
 
 enum Role {
   USER
@@ -118,562 +663,4 @@ enum CustomerTier {
   SILVER
   GOLD
   VIP
-}
-
-// ============================================================
-// USER & AUTH
-// ============================================================
-
-model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  phone           String?   @unique
-  passwordHash    String?
-  fullName        String
-  avatarUrl       String?
-  role            Role      @default(USER)
-  isActive        Boolean   @default(true)
-  isEmailVerified Boolean   @default(false)
-  isVerified      Boolean   @default(false) // Trạng thái KYC / Hoàn thiện hồ sơ (Đặc biệt cho Owner)
-  googleId        String?   @unique
-  facebookId      String?   @unique
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  lastLoginAt     DateTime?
-
-  profile          UserProfile?
-  sessions         Session[]
-  bookings         Booking[]
-  reviews          Review[]
-  notifications    Notification[]
-  favoritesCourts  FavoriteCourt[]
-  voucherUsages    VoucherUsage[]
-  ownedClubs       Club[]
-  passwordResets   PasswordReset[]
-  customerProfiles ClubCustomer[]
-  ownerProfile     OwnerProfile? // Chỉ tồn tại nếu user.role === 'OWNER'
-
-  @@map("users")
-}
-
-model UserProfile {
-  id          String    @id @default(cuid())
-  userId      String    @unique
-  address     String?
-  dateOfBirth DateTime?
-  gender      String?
-  bio         String?
-  updatedAt   DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_profiles")
-}
-
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  ipAddress String?
-  userAgent String?
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
-}
-
-model PasswordReset {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("password_resets")
-}
-
-// ============================================================
-// CLUB & COURTS
-// ============================================================
-
-model Club {
-  id             String         @id @default(cuid())
-  ownerId        String
-  name           String
-  slug           String         @unique
-  description    String?
-  address        String
-  ward           String?
-  district       String
-  city           String
-  latitude       Float?
-  longitude      Float?
-  phone          String?
-  email          String?
-  website        String?
-  logoUrl        String?
-  coverImageUrl  String?
-  approvalStatus ApprovalStatus @default(PENDING)
-  isActive       Boolean        @default(true)
-  slotDuration   Int            @default(60) // Thời lượng mỗi slot tính bằng phút (VD: 30, 60, 90)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-
-  owner        User           @relation(fields: [ownerId], references: [id])
-  courts       Court[]
-  images       ClubImage[]
-  openingHours OpeningHour[]
-  amenities    ClubAmenity[]
-  posts        Post[]
-  vouchers     Voucher[]
-  customers    ClubCustomer[]
-
-  @@map("clubs")
-}
-
-model ClubImage {
-  id        String   @id @default(cuid())
-  clubId    String
-  url       String
-  caption   String?
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-
-  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
-
-  @@map("club_images")
-}
-
-// ============================================================
-// OPENING HOURS
-// ============================================================
-
-model OpeningHour {
-  id        String   @id @default(cuid())
-  clubId    String
-  dayOfWeek Int // 0=CN, 1=T2, 2=T3, 3=T4, 4=T5, 5=T6, 6=T7
-  openTime  DateTime @db.Time // Giờ mở cửa, VD: 06:00:00
-  closeTime DateTime @db.Time // Giờ đóng cửa, VD: 23:00:00
-  isClosed  Boolean  @default(false) // true = nghỉ nguyên ngày đó
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
-
-  @@unique([clubId, dayOfWeek])
-  @@map("opening_hours")
-}
-
-// ============================================================
-// AMENITIES
-// ============================================================
-
-model Amenity {
-  id        String   @id @default(cuid())
-  name      String   @unique // "WiFi", "Canteen", "Parking", "Shower", "Locker"...
-  icon      String? // Tên icon (VD: "wifi", "utensils", "car")
-  createdAt DateTime @default(now())
-
-  clubs ClubAmenity[]
-
-  @@map("amenities")
-}
-
-model ClubAmenity {
-  id        String   @id @default(cuid())
-  clubId    String
-  amenityId String
-  note      String? // Ghi chú thêm: "WiFi miễn phí", "Canteen tầng 1"...
-  createdAt DateTime @default(now())
-
-  club    Club    @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  amenity Amenity @relation(fields: [amenityId], references: [id], onDelete: Cascade)
-
-  @@unique([clubId, amenityId])
-  @@map("club_amenities")
-}
-
-// ============================================================
-// COURTS
-// ============================================================
-
-model Court {
-  id            String      @id @default(cuid())
-  clubId        String
-  name          String
-  description   String?
-  sportType     SportType
-  status        CourtStatus @default(ACTIVE)
-  capacity      Int?
-  surface       String? // "Cỏ nhân tạo", "Sàn gỗ", "Bê tông"...
-  indoorOutdoor String? // "INDOOR" / "OUTDOOR"
-  sortOrder     Int         @default(0)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  club      Club            @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  images    CourtImage[]
-  pricings        CourtPricing[]
-  specialPricings SpecialDatePricing[]
-  timeSlots       TimeSlot[]
-  bookings  Booking[]
-  favoredBy FavoriteCourt[]
-
-  @@map("courts")
-}
-
-model CourtImage {
-  id        String   @id @default(cuid())
-  courtId   String
-  url       String
-  caption   String?
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-
-  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
-
-  @@map("court_images")
-}
-
-model CourtPricing {
-  id           String   @id @default(cuid())
-  courtId      String
-  dayOfWeek    Int? // 0=CN...6=T7. null = áp dụng mọi ngày
-  startTime    DateTime @db.Time // VD: 06:00:00
-  endTime      DateTime @db.Time // VD: 12:00:00
-  pricePerHour Decimal  @db.Decimal(12, 2)
-  label        String? // "Giờ sáng", "Giờ vàng", "Cuối tuần"...
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
-
-  @@map("court_pricings")
-}
-
-model SpecialDatePricing {
-  id           String   @id @default(cuid())
-  courtId      String
-  specificDate DateTime @db.Date // Ngày cụ thể: 2026-04-30
-  startTime    DateTime @db.Time
-  endTime      DateTime @db.Time
-  pricePerHour Decimal  @db.Decimal(12, 2)
-  note         String? // "Lễ 30/4", "Tết Nguyên Đán"
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
-
-  @@map("special_date_pricings")
-}
-
-// ============================================================
-// TIME SLOTS & BOOKING
-// ============================================================
-
-model TimeSlot {
-  id        String         @id @default(cuid())
-  courtId   String
-  startTime DateTime // Full DateTime: "2026-03-15T08:00:00"
-  endTime   DateTime // Full DateTime: "2026-03-15T09:00:00"
-  status    TimeSlotStatus @default(AVAILABLE)
-  lockedBy  String? // userId đang giữ slot tạm thời
-  lockedAt  DateTime?
-  note      String?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-
-  court        Court         @relation(fields: [courtId], references: [id], onDelete: Cascade)
-  bookingItems BookingItem[]
-
-  @@unique([courtId, startTime])
-  @@map("time_slots")
-}
-
-model Booking {
-  id             String        @id @default(cuid())
-  userId         String
-  courtId        String
-  bookingCode    String        @unique @default(cuid())
-  status         BookingStatus @default(PENDING)
-  totalAmount    Decimal       @db.Decimal(12, 2)
-  discountAmount Decimal       @default(0) @db.Decimal(12, 2)
-  finalAmount    Decimal       @db.Decimal(12, 2)
-  note           String?
-  voucherId      String?
-  // Thông tin người đặt
-  bookerName     String
-  bookerPhone    String
-  bookerEmail    String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-
-  user          User           @relation(fields: [userId], references: [id])
-  court         Court          @relation(fields: [courtId], references: [id])
-  voucher       Voucher?       @relation(fields: [voucherId], references: [id])
-  items         BookingItem[]
-  payment       Payment?
-  review        Review?
-  notifications Notification[]
-
-  @@map("bookings")
-}
-
-model BookingItem {
-  id         String   @id @default(cuid())
-  bookingId  String
-  timeSlotId String
-  price      Decimal  @db.Decimal(12, 2)
-  createdAt  DateTime @default(now())
-
-  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  timeSlot TimeSlot @relation(fields: [timeSlotId], references: [id])
-
-  @@unique([bookingId, timeSlotId])
-  @@map("booking_items")
-}
-
-// ============================================================
-// PAYMENT & REFUND
-// ============================================================
-
-model Payment {
-  id              String        @id @default(cuid())
-  bookingId       String        @unique
-  method          PaymentMethod
-  status          PaymentStatus @default(PENDING)
-  amount          Decimal       @db.Decimal(12, 2)
-  transactionRef  String?       @unique
-  bankName        String?
-  accountNumber   String?
-  transferContent String?
-  proofImageUrl   String?
-  paidAt          DateTime?
-  confirmedAt     DateTime?
-  confirmedBy     String?
-
-  // Chính sách hoàn tiền
-  refundStatus    RefundStatus @default(NONE)
-  refundAmount    Decimal?     @db.Decimal(12, 2) // Số tiền được hoàn lại
-  refundReason    String? // Lý do yêu cầu hoàn tiền
-  refundRequestAt DateTime? // Thời điểm user gửi yêu cầu
-  refundReviewAt  DateTime? // Thời điểm owner/admin xét duyệt
-  refundReviewBy  String? // ID người xét duyệt
-  refundNote      String? // Ghi chú của người xét duyệt
-  refundedAt      DateTime? // Thời điểm hoàn tiền thực tế
-
-  note      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  booking Booking @relation(fields: [bookingId], references: [id])
-
-  @@map("payments")
-}
-
-// ============================================================
-// REVIEWS
-// ============================================================
-
-model Review {
-  id        String   @id @default(cuid())
-  userId    String
-  bookingId String   @unique
-  courtId   String?
-  clubId    String?
-  rating    Int // 1–5
-  comment   String?
-  isVisible Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user    User          @relation(fields: [userId], references: [id])
-  booking Booking       @relation(fields: [bookingId], references: [id])
-  images  ReviewImage[]
-
-  @@map("reviews")
-}
-
-model ReviewImage {
-  id        String   @id @default(cuid())
-  reviewId  String
-  url       String
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-
-  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-
-  @@map("review_images")
-}
-
-// ============================================================
-// VOUCHER & PROMOTION
-// ============================================================
-
-model Voucher {
-  id             String      @id @default(cuid())
-  clubId         String? // null = toàn hệ thống (admin tạo)
-  code           String      @unique
-  title          String
-  description    String?
-  type           VoucherType
-  value          Decimal     @db.Decimal(12, 2)
-  minOrderAmount Decimal?    @db.Decimal(12, 2)
-  maxDiscount    Decimal?    @db.Decimal(12, 2)
-  usageLimit     Int?
-  usagePerUser   Int         @default(1)
-  usedCount      Int         @default(0)
-  startDate      DateTime
-  endDate        DateTime
-  isActive       Boolean     @default(true)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-
-  club     Club?          @relation(fields: [clubId], references: [id])
-  usages   VoucherUsage[]
-  bookings Booking[]
-
-  @@map("vouchers")
-}
-
-model VoucherUsage {
-  id        String   @id @default(cuid())
-  voucherId String
-  userId    String
-  usedAt    DateTime @default(now())
-
-  voucher Voucher @relation(fields: [voucherId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
-
-  @@unique([voucherId, userId])
-  @@map("voucher_usages")
-}
-
-// ============================================================
-// FAVORITE COURTS
-// ============================================================
-
-model FavoriteCourt {
-  id        String   @id @default(cuid())
-  userId    String
-  courtId   String
-  createdAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, courtId])
-  @@map("favorite_courts")
-}
-
-// ============================================================
-// NOTIFICATIONS
-// ============================================================
-
-model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  type      NotificationType
-  title     String
-  body      String
-  bookingId String?
-  isRead    Boolean          @default(false)
-  readAt    DateTime?
-  createdAt DateTime         @default(now())
-
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  booking Booking? @relation(fields: [bookingId], references: [id])
-
-  @@map("notifications")
-}
-
-// ============================================================
-// NEWS FEED / POSTS
-// ============================================================
-
-model Post {
-  id            String     @id @default(cuid())
-  clubId        String
-  type          PostType
-  status        PostStatus @default(ACTIVE)
-  title         String
-  content       String
-  imageUrl      String?
-  linkedCourtId String?
-  linkedDate    DateTime?
-  expiresAt     DateTime?
-  viewCount     Int        @default(0)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
-
-  @@map("posts")
-}
-
-// ============================================================
-// OWNER CRM
-// ============================================================
-
-model ClubCustomer {
-  id            String       @id @default(cuid())
-  clubId        String
-  userId        String
-  tier          CustomerTier @default(NORMAL)
-  totalBookings Int          @default(0)
-  totalCancels  Int          @default(0)
-  totalSpent    Decimal      @default(0) @db.Decimal(14, 2)
-  notes         String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([clubId, userId])
-  @@map("club_customers")
-}
-
-// ============================================================
-// OWNER PROFILE (KYC + PAYOUT)
-// ============================================================
-
-model OwnerProfile {
-  id                 String         @id @default(cuid())
-  userId             String         @unique
-
-  // Thông tin định danh cá nhân (KYC)
-  idCardNumber       String?        // Số CCCD / CMND
-  idCardFrontUrl     String?        // Ảnh CCCD mặt trước
-  idCardBackUrl      String?        // Ảnh CCCD mặt sau
-  businessLicenseUrl String?        // Ảnh Giấy phép kinh doanh (không bắt buộc)
-  taxCode            String?        // Mã số thuế doanh nghiệp
-
-  // Tài khoản ngân hàng nhận tiền (Payout)
-  bankName           String?        // VD: "Vietcombank", "Techcombank"
-  bankAccountNumber  String?        // Số tài khoản ngân hàng
-  bankAccountName    String?        // Tên chủ tài khoản (CHỮ HOA, khớp tên pháp lý)
-
-  // Quy định vận hành mặc định
-  cancellationPolicy String?        // VD: "Hủy trước 24h hoàn 100%, sau đó không hoàn..."
-
-  // Trạng thái duyệt hồ sơ KYC bởi Admin
-  kycStatus          ApprovalStatus @default(PENDING)
-  kycReviewedAt      DateTime?      // Thời điểm Admin xét duyệt
-  kycReviewedBy      String?        // ID của Admin đã duyệt
-  kycNote            String?        // Ghi chú / Lý do từ chối của Admin
-
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("owner_profiles")
 }

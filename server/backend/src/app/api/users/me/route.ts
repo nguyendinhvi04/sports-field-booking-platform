@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
-import { getMyProfile } from "@/services/auth.service";
-import { updateMyProfile } from "@/services/user.service";
+import { getMyProfile, updateMyProfile } from "@/modules/user/user.service";
 import { updateProfileSchema } from "@/validations/user.schema";
 import { getAuthUser } from "@/middlewares/auth.middleware";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
@@ -36,7 +35,7 @@ export async function PUT(req: NextRequest) {
 
     // 2. Chạy hàm update logic
     const updatedUser = await updateMyProfile(user.userId, parsed.data);
-    
+
     // 3. Trả về kết quả
     return successResponse("Cập nhật thông tin thành công", updatedUser);
   } catch (error: unknown) {

@@ -46,33 +46,6 @@
       </div>
     </fieldset>
 
-    <!-- ══ BOOKING METHOD ══ -->
-    <fieldset class="filter-group">
-      <legend class="filter-legend">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Phương thức đặt chỗ
-        <button type="button" class="info-btn" title="Các loại hình đặt sân" aria-label="Thông tin về phương thức đặt chỗ">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        </button>
-      </legend>
-      <label
-        v-for="opt in bookingOptions"
-        :key="opt.value"
-        class="filter-checkbox"
-        :class="{ checked: modelValue.booking.includes(opt.value) }"
-      >
-        <input
-          type="checkbox"
-          :value="opt.value"
-          :checked="modelValue.booking.includes(opt.value)"
-          @change="toggleArray('booking', opt.value)"
-          :aria-label="opt.label"
-        />
-        <span class="checkmark" aria-hidden="true"></span>
-        <span class="check-label">{{ opt.label }}</span>
-      </label>
-    </fieldset>
-
     <!-- ══ SEARCH BY DATE ══ -->
     <fieldset class="filter-group">
       <legend class="filter-legend">

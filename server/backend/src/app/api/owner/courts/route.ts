@@ -36,6 +36,8 @@ export async function GET(req: NextRequest) {
     );
 
     return successResponse("Lấy danh sách sân thành công", allCourts);
+
+    
   } catch (err) {
     return serverErrorResponse(err);
   }

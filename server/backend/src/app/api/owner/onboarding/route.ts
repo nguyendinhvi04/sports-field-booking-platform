@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { submitOwnerOnboarding } from "@/services/owner.service";
+import { submitOwnerOnboarding } from "@/modules/admin/owner.service";
 import { getAuthUser, requireRole } from "@/middlewares/auth.middleware";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 

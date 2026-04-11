@@ -10,8 +10,8 @@
         <div class="nav-menu desktop-only">
           <router-link to="/" class="nav-menu-link">TRANG CHỦ</router-link>
           <router-link to="/booking" class="nav-menu-link">ĐẶT SÂN</router-link>
-          <router-link to="/contact" class="nav-menu-link">BẢN ĐỒ</router-link>
-          <router-link to="/contact" class="nav-menu-link">TÌM BẠN</router-link>
+          <router-link to="/map" class="nav-menu-link">BẢN ĐỒ</router-link>
+          <router-link to="/friend" class="nav-menu-link">TÌM BẠN</router-link>
           <router-link to="/about" class="nav-menu-link">GIỚI THIỆU</router-link>
       <button 
         class="nav-search-btn" 
@@ -40,7 +40,7 @@
       <div class="navbar-right desktop-only">
         <template v-if="user">
           <span class="welcome-text">Chào, {{ user.fullName }}</span>
-          <router-link to="/booking" class="nav-link">
+          <router-link to="/order" class="nav-link">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="4" width="18" height="18" rx="2" />
               <path d="M16 2v4M8 2v4M3 10h18" />
@@ -144,9 +144,10 @@
 
           <div class="mobile-nav-links">
             <router-link @click="closeMenu" to="/" class="mobile-nav-item">TRANG CHỦ</router-link>
+            <router-link @click="closeMenu" to="blog" class="mobile-nav-item">BÀI VIẾT</router-link>
             <router-link @click="closeMenu" to="/booking" class="mobile-nav-item">ĐẶT SÂN</router-link>
-            <router-link @click="closeMenu" to="/contact" class="mobile-nav-item">BẢN ĐỒ</router-link>
-            <router-link @click="closeMenu" to="/contact" class="mobile-nav-item">TÌM BẠN</router-link>
+            <router-link @click="closeMenu" to="/map" class="mobile-nav-item">BẢN ĐỒ</router-link>
+            <router-link @click="closeMenu" to="/friend" class="mobile-nav-item">TÌM BẠN</router-link>
             <router-link @click="closeMenu" to="/about" class="mobile-nav-item">GIỚI THIỆU</router-link>
             <div class="divider"></div>
             
@@ -154,7 +155,7 @@
               <div class="user-info-mobile">
                 <span class="welcome-text">Chào, {{ user.fullName }}</span>
               </div>
-              <router-link @click="closeMenu" to="/booking" class="mobile-nav-item">
+              <router-link @click="closeMenu" to="/order" class="mobile-nav-item">
                 QUẢN LÝ ĐẶT CHỖ
               </router-link>
               <button @click="handleLogout" class="mobile-nav-item btn-logout-mobile">
@@ -178,8 +179,11 @@
 </template>
 
 <script>
+
 export default {
   name: "ClientHeader",
+  components: {
+  },
   data() {
     return {
       isMenuOpen: false,
@@ -192,6 +196,7 @@ export default {
     user() {
       const userData = localStorage.getItem("user");
       return userData ? JSON.parse(userData) : null;
+      console.log(userData);
     }
   },
   methods: {

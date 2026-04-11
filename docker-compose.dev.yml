@@ -27,6 +27,23 @@ services:
       retries: 5
 
   # ─────────────────────────────────────────
+  # Redis (cho Socket.io Adapter & Cache)
+  # ─────────────────────────────────────────
+  redis:
+    image: redis:alpine
+    container_name: sports_booking_redis_dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/var/lib/redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─────────────────────────────────────────
   # Backend - DEV MODE (hot reload, không build)
   # ─────────────────────────────────────────
   backend:
@@ -41,13 +58,16 @@ services:
       - "4000:4000"
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/sports-booking?schema=public
+      REDIS_URL: redis://redis:6379
       JWT_SECRET: dev-secret-key-not-for-production
       JWT_EXPIRES_IN: 7d
       NODE_ENV: development
-    # Cài deps, chạy migrate rồi mới start dev server
+    # Cài deps, chạy migrate rồi mới tart dev servers
     command: sh -c "npm install && npx prisma migrate deploy && npx prisma generate && npm run dev"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   # ─────────────────────────────────────────
@@ -71,4 +91,6 @@ services:
 
 volumes:
   postgres_dev_data:
+    driver: local
+  redis_dev_data:
     driver: local

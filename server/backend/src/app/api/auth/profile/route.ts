@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getAuthUser } from "@/middlewares/auth.middleware";
-import { getMyProfile } from "@/services/auth.service";
+import { getMyProfile } from "@/modules/user/user.service";
 import { successResponse, serverErrorResponse } from "@/lib/response";
 import { prisma } from "@/lib/prisma";
 

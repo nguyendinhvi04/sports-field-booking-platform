@@ -1,11 +1,16 @@
+import { checkRateLimit } from "@/lib/rateLimit";
 import { NextRequest } from "next/server";
 import { forgotPasswordSchema } from "@/validations/auth.schema";
-import { forgotPassword } from "@/services/auth.service";
+import { forgotPassword } from "@/modules/user/auth.service";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 
 // POST /api/auth/forgot-password
 export async function POST(req: NextRequest) {
   try {
+    // Giới hạn quên mật khẩu: 2 lần mỗi phút để tránh spam mail
+    const rateLimitError = await checkRateLimit(req, 2, 60 * 1000, "Vui lòng đợi 1 phút trước khi yêu cầu cấp lại mật khẩu mới.");
+    if (rateLimitError) return rateLimitError;
+
     const body = await req.json();
 
     const parsed = forgotPasswordSchema.safeParse(body);

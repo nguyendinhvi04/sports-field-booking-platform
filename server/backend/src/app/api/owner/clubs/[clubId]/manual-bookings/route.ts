@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getAuthUser, requireRole } from "@/middlewares/auth.middleware";
-import { createManualBooking } from "@/services/booking.service";
+import { createManualBooking } from "@/modules/booking/booking.service";
 import { manualBookingSchema } from "@/validations/manual-booking.schema";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 
@@ -32,7 +32,7 @@ export async function POST(
       );
     }
 
-    const booking = await createManualBooking(user.userId, clubId, parsed.data);
+    const booking = await createManualBooking(user.userId, { ...parsed.data, clubId });
 
     return successResponse("Tạo đơn đặt sân thủ công thành công", booking, 201);
   } catch (error: unknown) {

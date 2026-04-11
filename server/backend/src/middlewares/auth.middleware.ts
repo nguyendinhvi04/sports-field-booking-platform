@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { verifyToken, extractTokenFromHeader, JwtPayload } from "@/lib/jwt";
 import { errorResponse } from "@/lib/response";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Lấy thông tin user đã xác thực từ request.
@@ -28,6 +29,33 @@ export async function getAuthUser(
     return {
       user: null,
       error: errorResponse("Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.", 401),
+    };
+  }
+
+  // 1. Kiểm tra session (Nếu có SID)
+  if (payload.sid) {
+    const session = await prisma.session.findUnique({
+      where: { id: payload.sid },
+    });
+
+    if (!session || session.isRevoked || session.expiresAt < new Date()) {
+      return {
+        user: null,
+        error: errorResponse("Phiên đăng nhập đã hết hạn hoặc bị thu hồi. Vui lòng đăng nhập lại.", 401),
+      };
+    }
+  }
+
+  // 2. Kiểm tra User tồn tại trong DB (Tránh trường hợp DB vừa bị seed/wipe)
+  const userExists = await prisma.user.findUnique({
+    where: { id: payload.userId },
+    select: { id: true }
+  });
+
+  if (!userExists) {
+    return {
+      user: null,
+      error: errorResponse("Tài khoản không tồn tại trên hệ thống. Vui lòng đăng nhập lại.", 401),
     };
   }
 

@@ -24,5 +24,9 @@ export const authService = {
 
     loginWithGoogle(idToken, role) {
         return api.post('/auth/google', { idToken, role });
+    },
+
+    getMe() {
+        return api.get('/users/me');
     }
 };

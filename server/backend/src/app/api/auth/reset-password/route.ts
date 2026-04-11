@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { resetPasswordSchema } from "@/validations/auth.schema";
-import { resetPassword } from "@/services/auth.service";
+import { resetPassword } from "@/modules/user/auth.service";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 
 // POST /api/auth/reset-password

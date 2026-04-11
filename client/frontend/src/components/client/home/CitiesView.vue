@@ -71,7 +71,7 @@ export default {
 
 .cities-section {
   font-family: 'Barlow';
-  background: var(--bg);
+  background: transparent;
   padding: 60px 40px 70px;
   max-width: 1200px;
   margin: 0 auto;
@@ -81,6 +81,7 @@ export default {
 .cities-section__header {
   text-align: center;
   margin-bottom: 40px;
+  background: transparent;
 }
 
 .cities-section__title {
@@ -208,6 +209,7 @@ export default {
 @media (max-width: 560px) {
   .cities-section {
     padding: 40px 16px 50px;
+    background: #ffff;
   }
 
   .cities-grid {

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { updateOwnerBankInfo, updateOwnerProfile } from "@/services/owner.service";
+import { updateOwnerBankInfo, updateOwnerProfile } from "@/modules/admin/owner.service";
 import { getAuthUser, requireRole } from "@/middlewares/auth.middleware";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 import { prisma } from "@/lib/prisma";

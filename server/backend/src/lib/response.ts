@@ -41,15 +41,20 @@ export function errorResponse(
 }
 
 /**
+ * Trả về response lỗi 400 (Bad Request)
+ */
+export function badRequestResponse(message: string, errors?: Record<string, string[]>): NextResponse<ErrorResponse> {
+  return errorResponse(message, 400, errors);
+}
+
+/**
  * Xử lý lỗi không mong muốn (catch block)
  */
 export function serverErrorResponse(error: unknown): NextResponse<ErrorResponse> {
   console.error("[SERVER_ERROR]", error);
-  if (error instanceof Error) {
-    console.error("Stack trace:", error.stack);
-  }
+  const message = error instanceof Error ? error.message : String(error);
   return NextResponse.json(
-    { success: false, message: "Lỗi máy chủ nội bộ. Vui lòng thử lại sau." },
+    { success: false, message: "Server Error: " + message },
     { status: 500 }
   );
 }

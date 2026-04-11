@@ -1,0 +1,67 @@
+================================================================================
+KẾ HOẠCH CHI TIẾT SPRINT - TÍCH HỢP AI CHATBOT (SPORTS FIELD BOOKING)
+================================================================================
+
+Dưới đây là danh sách chi tiết các Task phục vụ cho Sprint phát triển AI Chatbot, 
+hỗ trợ tìm kiếm, đề xuất và đặt sân tự động.
+
+--------------------------------------------------------------------------------
+SPRINT 1: NỀN TẢNG & TÌM KIẾM THÔNG MINH (4 TASKS)
+--------------------------------------------------------------------------------
+
+TASK 1: Thiết lập cấu hình môi trường và thư viện AI
+   - Mô tả chi tiết: Khởi tạo các biến môi trường cần thiết (API Key của OpenAI/Gemini) trong cả server/backend và client/frontend. Cài đặt các thư viện cốt lõi (`ai`, `@ai-sdk/google`, `zod` cho backend; `@ai-sdk/vue` cho frontend). Đảm bảo hệ thống có thể kết nối thành công với LLM provider.
+   - Tiêu chí hoàn thành: Login AI thành công, không lỗi kết nối từ backend.
+
+TASK 2: Xây dựng API Chat luồng chính hỗ trợ Streaming (Backend)
+   - Mô tả chi tiết: Tạo một API Route mới `/api/chat` xử lý yêu cầu POST. Sử dụng thư viện AI SDK để tạo luồng stream phản hồi nhanh. Thiết kế System Prompt định danh vai trò của Bot (Expert Assistant), quy định cách trả lời thân thiện, sử dụng tiếng Việt và hiểu các thực thể về thể thao (bóng đá, cầu lông...).
+   - Tiêu chí hoàn thành: Postman hoặc Frontend nhận được phản hồi dạng stream (từng chữ một) từ AI.
+
+TASK 3: Phát triển Công cụ Tìm kiếm Sân bóng cho AI (Function Calling)
+   - Mô tả chi tiết: Định nghĩa các "Tools" trong AI SDK để AI có thể gọi dữ liệu thật từ Database. Bao gồm: `searchClubs` (tìm theo quận, thành phố, loại sân), `getClubInfo` (lấy chi tiết giá, giờ mở cửa). Kết nối các tool này với Prisma Client để thực hiện truy vấn SQL.
+   - Tiêu chí hoàn thành: AI có thể trả lời chính xác các câu hỏi như "Sân bóng ở Quận 7 có giá dưới 500k?".
+
+TASK 4: Thiết lập Giao diện khung Chat cơ bản (Frontend - Vue.js)
+   - Mô tả chi tiết: Xây dựng một component ChatWidget dưới dạng bong bóng nổi hoặc tích hợp trực tiếp vào trang chủ. Sử dụng hook `useChat` của Vercel AI SDK để quản lý trạng thái tin nhắn. Hỗ trợ hiển thị Markdown để AI có thể trả về danh sách, in đậm/nghiêng đẹp mắt.
+   - Tiêu chí hoàn thành: Người dùng có thể gõ tin nhắn và nhận phản hồi hiển thị trên UI.
+
+--------------------------------------------------------------------------------
+SPRINT 2: ĐẶT SÂN TỰ ĐỘNG & TƯƠNG TÁC THÔNG MINH (4 TASKS)
+--------------------------------------------------------------------------------
+
+TASK 5: Xây dựng cơ chế trích xuất thực thể đặt sân (Entity Extraction)
+   - Mô tả chi tiết: Tinh chỉnh System Prompt để AI có khả năng tự nhận diện thông tin đặt sân từ câu nói của người dùng (Tên sân, ngày đặt, giờ bắt đầu, thời lượng). Nếu thiếu thông tin (VD: chỉ bảo "Đặt sân"), AI phải biết hỏi lại lịch sự để thu thập đủ dữ liệu.
+   - Tiêu chí hoàn thành: AI trích xuất đúng JSON format cho các yêu cầu như "Đặt sân Thanh Đa chiều mai lúc 5h".
+
+TASK 6: Phát triển Công cụ Đặt sân tự động (Booking Integration)
+   - Mô tả chi tiết: Xây dựng tool `createBooking` cho phép AI gọi trực tiếp vào logic tạo đơn hàng trong Database. Tool này phải kiểm tra tính khả dụng của TimeSlot (Check availability) trước khi thực hiện. Yêu cầu xử lý Context người dùng (UserId) để gắn vào đơn hàng.
+   - Tiêu chí hoàn thành: Một đơn đặt sân thực tế được tạo thành công trong DB thông qua hội thoại chat.
+
+TASK 7: Xây dựng UI xác nhận dạng thẻ (Interactive Cards)
+   - Mô tả chi tiết: Thay vì chỉ trả lời bằng chữ, AI sẽ trả về một UI Component tóm tắt đơn đặt (Ngày, Giờ, Tổng tiền). Người dùng phải nhấn nút "Xác nhận" hoặc "Hủy" trên thẻ này. Thẻ này giúp giảm thiểu việc đặt nhầm do AI hiểu sai ý.
+   - Tiêu chí hoàn thành: Thẻ tóm tắt hiển thị trực quan trong khung chat với các nút tương tác.
+
+TASK 8: Quản lý và Truy xuất Lịch sử hội thoại (Persistence)
+   - Mô tả chi tiết: Cập nhật Prisma Schema để tạo Model `ChatHistory`. Lưu trữ toàn bộ tin nhắn vào DB. Khi người dùng quay lại trang web hoặc đổi thiết bị, hệ thống sẽ gọi API lấy lại lịch sử chat để AI duy trì được ngữ cảnh nếu đang đặt dở.
+   - Tiêu chí hoàn thành: Reset trang web nhưng tin nhắn cũ vẫn hiển thị và AI vẫn nhớ nội dung trước đó.
+
+--------------------------------------------------------------------------------
+SPRINT 3: TỐI ƯU HÓA & NÂNG CAO TRẢI NGHIỆM (4 TASKS)
+--------------------------------------------------------------------------------
+
+TASK 9: Cá nhân hóa Đề xuất (Personalized Recommendations)
+   - Mô tả chi tiết: Xây dựng tool cho phép AI truy cập lịch sử đặt sân cũ của người dùng. AI có thể tư vấn: "Bạn hay chơi sân A, sân đó đang có ưu đãi hôm nay..." hoặc đề xuất các sân có đặc điểm tương đương với sở thích của người chơi.
+   - Tiêu chí hoàn thành: Bot chủ động gợi ý đúng sân dựa trên dữ liệu người dùng thật.
+
+TASK 10: Tích hợp AI vào luồng Thanh toán (Payment Flow Integration)
+   - Mô tả chi tiết: Sau khi xác nhận đặt sân, AI sẽ tự động tạo link thanh toán (VNPAY/MOMO/Bank) và cung cấp cho người dùng ngay trong chat. AI hướng dẫn người dùng cách thanh toán và chờ đợi phản hồi trạng thái từ Webhook thanh toán để thông báo: "Cảm ơn bạn, thanh toán đã thành công!".
+   - Tiêu chí hoàn thành: Link thanh toán được gen ra đúng đơn hàng và hiển thị trong chat.
+
+TASK 11: Xử lý tình huống biên và sai lệch thông tin (Edge Cases)
+   - Mô tả chi tiết: Lập trình kịch bản khi sân bị hết chỗ giữa chừng (Race condition), hoặc người dùng yêu cầu đặt giờ quá khứ/giờ ngoài khung mở cửa. AI phải biết xử lý khéo léo và đề xuất các phương án thay thế (Khung giờ khác, sân gần đó).
+   - Tiêu chí hoàn thành: Hệ thống không bị crash và AI xử lý logic hợp lý cho ít nhất 5 trường hợp lỗi phổ biến.
+
+TASK 12: Kiểm thử, Tối ưu hóa và Đóng gói (QA & Performance)
+   - Mô tả chi tiết: Kiểm tra độ trễ (Latency) của AI phản hồi. Tối ưu Token usage để tiết kiệm chi phí API. Đóng gói code, triển khai (Deploy) lên môi trường Production. Thiết lập giới hạn tin nhắn (Rate Limit) để tránh bị spam phá hoại API AI.
+   - Tiêu chí hoàn thành: Bot phản hồi dưới 2 giây cho ký tự đầu tiên, hệ thống chạy ổn định trên Server.
+================================================================================

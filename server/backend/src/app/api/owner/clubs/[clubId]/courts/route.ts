@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getAuthUser, requireRole } from "@/middlewares/auth.middleware";
-import { createCourt, getCourtsByClubId } from "@/services/court.service";
+import { createCourt, getCourtsByClubId } from "@/modules/club/court.service";
 import { createCourtSchema } from "@/validations/court.schema";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { confirmPaymentManual } from "@/services/booking.service";
+import { confirmPaymentManual } from "@/modules/booking/booking.service";
 import { getAuthUser, requireRole } from "@/middlewares/auth.middleware";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getNearbyClubs } from "@/services/club.service";
+import { getNearbyClubs } from "@/modules/club/club.service";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 
 /**

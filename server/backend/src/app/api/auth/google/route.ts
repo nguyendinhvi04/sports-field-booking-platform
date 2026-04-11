@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { loginWithGoogle } from "@/services/auth.service";
+import { loginWithGoogle } from "@/modules/user/auth.service";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 
 // POST /api/auth/google

@@ -2,15 +2,8 @@
   <div>
     <HeroView />
     <main id="main-content">
-      <!-- ── Cities ── -->
-      <section
-        id="cities"
-        aria-labelledby="cities-heading"
-        class="section-wrapper"
-      >
-        <CitiesView heading-id="cities-heading" />
-      </section>
-      <section
+      <!-- ── Nearby venues ── -->
+         <section
         id="nearby-venues"
         aria-labelledby="nearby-heading"
         class="section-wrapper nearby-section"
@@ -20,7 +13,6 @@
         <meta itemprop="name" content="Sân thể thao gần bạn" />
 
         <div class="container">
-          <!-- ✅ h2 đúng hierarchy (HeroView giữ h1) -->
           <header class="section-header">
             <h2 id="nearby-heading" class="section-title">
               Sân gần bạn
@@ -83,13 +75,23 @@
             <button class="btn-retry" @click="loadDefaultClubs">Xem sân tại Đà Nẵng</button>
           </div>
           <div v-if="!loading && danhSachSan.length > 0" class="view-all-wrap">
-            <router-link to="/venues" class="btn-view-all">
+            <router-link :to="`/booking?lat=${DEFAULT_LAT}&lng=${DEFAULT_LNG}&radius=20`" class="btn-view-all">
               Xem tất cả sân
               <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </router-link>
           </div>
         </div>
       </section>
+
+      <!-- ── Cities ── -->
+      <section
+        id="cities"
+        aria-labelledby="cities-heading"
+        class="section-wrapper"
+      >
+        <CitiesView heading-id="cities-heading" />
+      </section>
+   
        <!-- ── Services ── -->
       <section
         id="services"
@@ -162,6 +164,8 @@ export default {
       danhSachSan: [],
       loading: true,
       error: null,
+      DEFAULT_LAT,
+      DEFAULT_LNG,
     };
   },
 
@@ -271,8 +275,8 @@ export default {
 <style scoped>
 /* ── Variables ── */
 .nearby-section {
-  --green: #3dd56d;
-  --green-dark: #28b857;
+  --green: rgb(22, 163, 74);
+  --green-dark: rgb(15, 118, 54);
   --text-dark: #1a1a2e;
   --text-muted: #6b7280;
   --bg-section: #f7f8fa;
@@ -283,6 +287,10 @@ export default {
 /* ── Section wrapper spacing ── */
 .section-wrapper {
   padding: 0;
+}
+
+#cities {
+  background: #ffffff;
 }
 
 .nearby-section {
@@ -329,11 +337,12 @@ export default {
   line-height: 1.65;
 }
 
-/* ── Venues Grid: 3 cols → 2 → 1 ── */
+/* ── Venues Grid: 2 cols → 1 ── */
 .venues-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);   /* ✅ 3 cột trên desktop */
+  grid-template-columns: repeat(2, 1fr);   /* ✅ Hiển thị 2 cột trên desktop theo yêu cầu */
   gap: 24px;
+  overflow: hidden;
 }
 
 @media (max-width: 992px) {
@@ -347,6 +356,8 @@ export default {
 /* ── Venue item animation ── */
 .venue-item {
   animation: fadeUp 0.5s ease both;
+  min-width: 0;           /* Prevent grid blowout */
+  overflow: hidden;
 }
 
 @keyframes fadeUp {

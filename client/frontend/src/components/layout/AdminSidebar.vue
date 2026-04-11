@@ -1,393 +1,297 @@
 <template>
-    <div class="topbar-nav header navbar" role="banner">
-        <nav id="topbar">
-            <ul class="navbar-nav theme-brand flex-row  text-center">
-                <li class="nav-item theme-logo">
-                    <a href="index.html">
-                        <img src="../../assets/logo.png" class="navbar-logo" alt="logo" style="width: 35px; height: 35px; object-fit: contain;">
-                    </a>
-                </li>
-                <li class="nav-item theme-text">
-                    <a href="index.html" class="nav-link"> CORK </a>
-                </li>
-            </ul>
-
-            <ul class="list-unstyled menu-categories" id="topAccordion">
-
-                <li class="menu single-menu active">
-                    <a href="#dashboard" data-toggle="collapse" aria-expanded="true"
-                        class="dropdown-toggle autodroprown">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-home">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                            </svg>
-                            <span>Dashboard</span>
-                        </div>
-                    </a>
-                </li>
-
-                <li class="menu single-menu">
-                    <a href="#app" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-cpu">
-                                <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                                <rect x="9" y="9" width="6" height="6"></rect>
-                                <line x1="9" y1="1" x2="9" y2="4"></line>
-                                <line x1="15" y1="1" x2="15" y2="4"></line>
-                                <line x1="9" y1="20" x2="9" y2="23"></line>
-                                <line x1="15" y1="20" x2="15" y2="23"></line>
-                                <line x1="20" y1="9" x2="23" y2="9"></line>
-                                <line x1="20" y1="14" x2="23" y2="14"></line>
-                                <line x1="1" y1="9" x2="4" y2="9"></line>
-                                <line x1="1" y1="14" x2="4" y2="14"></line>
-                            </svg>
-                            <span>Nhân Viên</span>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-down">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </a>
-                    <ul class="collapse submenu list-unstyled" id="app" data-parent="#topAccordion">
-                        <li>
-                            <a href="apps_chat.html"> Nhân Viên Bán Quần Áo </a>
-                        </li>
-                        <li>
-                            <a href="apps_mailbox.html"> Nhân Viên Thu Ngân </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="menu single-menu">
-                    <a href="#components" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-box">
-                                <path
-                                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
-                                </path>
-                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                            </svg>
-                            <span>Quản lý tài khoản</span>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-down">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </a>
-                    <ul class="collapse submenu list-unstyled" id="components" data-parent="#topAccordion">
-                        <li>
-                            <a href="component_pricing_table.html"> Tài khoản khách hàng </a>
-                        </li>
-                        <li>
-                            <a href="component_lightbox.html"> Tài khoản nhân viên </a>
-                        </li>
-                    </ul>
-                </li>
-
-
-                <li class="menu single-menu">
-                    <a href="#uiKit" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-zap">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                            </svg>
-                            <span>Thống Kê</span>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-down">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </a>
-                    <ul class="collapse submenu list-unstyled" id="uiKit" data-parent="#topAccordion">
-                        <li>
-                            <a href="ui_treeview.html"> Thống kê doanh thu  </a>
-                        </li>
-                        <li>
-                            <a href="ui_typography.html"> Thống kê đơn hàng </a>
-                        </li>
-                        <li>
-                            <a href="ui_typography.html"> Thống kê số lượng sân </a>
-                        </li>
-                        <li>
-                            <a href="ui_typography.html"> Thống kê trạng thái </a>
-                        </li>
-                        <li>
-                            <a href="ui_typography.html"> Thống kê đánh giá </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="menu single-menu">
-                    <a href="#tables" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-layout">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="3" y1="9" x2="21" y2="9"></line>
-                                <line x1="9" y1="21" x2="9" y2="9"></line>
-                            </svg>
-                            <span>Tables</span>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-down">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </a>
-                    <ul class="collapse submenu list-unstyled" id="tables" data-parent="#topAccordion">
-                        <li>
-                            <a href="table_basic.html"> Basic </a>
-                        </li>
-                        <li class="sub-sub-submenu-list">
-                            <a href="#datatable" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                                DataTables <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round"
-                                    class="feather feather-chevron-right">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg> </a>
-                            <ul class="collapse list-unstyled sub-submenu" id="datatable" data-parent="#datatable">
-                                <li>
-                                    <a href="table_dt_basic.html"> Basic </a>
-                                </li>
-                                <li>
-                                    <a href="table_dt_striped_table.html"> Striped Table </a>
-                                </li>
-                                <li>
-                                    <a href="table_dt_ordering_sorting.html"> Order Sorting </a>
-                                </li>
-                                <li>
-                                    <a href="table_dt_multi-column_ordering.html"> Multi-Column </a>
-                                </li>
-                                <li>
-                                    <a href="table_dt_multiple_tables.html"> Multiple Tables</a>
-                                </li>
-                                <li>
-                                    <a href="table_dt_alternative_pagination.html"> Alt. Pagination</a>
-                                </li>
-                                <li>
-                                    <a href="table_dt_custom.html"> Custom </a>
-                                </li>
-                                <li>
-                                    <a href="table_dt_range_search.html"> Range Search </a>
-                                </li>
-                                <li>
-                                    <a href="table_dt_html5.html"> HTML5 Export </a>
-                                </li>
-                                <li>
-                                    <a href="table_dt_live_dom_ordering.html"> Live DOM ordering </a>
-                                </li>
-                                <li>
-                                    <a href="table_dt_miscellaneous.html"> Miscellaneous </a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="menu single-menu">
-                    <a href="#forms" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-clipboard">
-                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2">
-                                </path>
-                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                            </svg>
-                            <span>Đơn Hàng</span>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-down">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </a>
-                    <ul class="collapse submenu list-unstyled" id="forms" data-parent="#topAccordion">
-                        <li>
-                            <a href="form_clipboard.html"> Clipboard </a>
-                        </li>
-                        <li>
-                            <a href="form_typeahead.html"> Typeahead </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="menu single-menu">
-                    <a href="#page" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-file">
-                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                                <polyline points="13 2 13 9 20 9"></polyline>
-                            </svg>
-                            <span>Phân Quyền</span>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-down">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </a>
-                    <ul class="collapse submenu list-unstyled" id="page" data-parent="#topAccordion">
-                        
-                        <li class="sub-sub-submenu-list">
-                            <a href="#user-login" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                                Login <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-chevron-right">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg> </a>
-                            <ul class="collapse list-unstyled sub-submenu" id="user-login" data-parent="#page">
-                                <li>
-                                    <a target="_blank" href="auth_login.html"> Login </a>
-                                </li>
-                                <li>
-                                    <a target="_blank" href="auth_login_boxed.html"> Login Boxed </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="sub-sub-submenu-list">
-                            <a href="#user-register" data-toggle="collapse" aria-expanded="false"
-                                class="dropdown-toggle"> Register <svg xmlns="http://www.w3.org/2000/svg" width="24"
-                                    height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round"
-                                    class="feather feather-chevron-right">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg> </a>
-                            <ul class="collapse list-unstyled sub-submenu" id="user-register" data-parent="#page">
-                                <li>
-                                    <a target="_blank" href="auth_register.html"> Register </a>
-                                </li>
-                                <li>
-                                    <a target="_blank" href="auth_register_boxed.html"> Register Boxed </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <li class="sub-sub-submenu-list">
-                            <a href="#user-passRecovery" data-toggle="collapse" aria-expanded="false"
-                                class="dropdown-toggle"> Password Recovery <svg xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                    class="feather feather-chevron-right">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg> </a>
-                            <ul class="collapse list-unstyled sub-submenu" id="user-passRecovery" data-parent="#page">
-                                <li>
-                                    <a target="_blank" href="auth_pass_recovery.html"> Recover ID </a>
-                                </li>
-                                <li>
-                                    <a target="_blank" href="auth_pass_recovery_boxed.html"> Recover ID Boxed </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <li class="sub-sub-submenu-list">
-                            <a href="#user-lockscreen" data-toggle="collapse" aria-expanded="false"
-                                class="dropdown-toggle"> Lockscreen <svg xmlns="http://www.w3.org/2000/svg" width="24"
-                                    height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round"
-                                    class="feather feather-chevron-right">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg> </a>
-                            <ul class="collapse list-unstyled sub-submenu" id="user-lockscreen" data-parent="#page">
-                                <li>
-                                    <a target="_blank" href="auth_lockscreen.html"> Unlock </a>
-                                </li>
-                                <li>
-                                    <a target="_blank" href="auth_lockscreen_boxed.html"> Unlock Boxed </a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="menu single-menu">
-                    <a href="#more" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                        <div class="">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-plus-circle">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="16"></line>
-                                <line x1="8" y1="12" x2="16" y2="12"></line>
-                            </svg>
-                            <span>More</span>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-chevron-down">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </a>
-                    <ul class="collapse submenu list-unstyled" id="more" data-parent="#topAccordion">
-                        <li>
-                            <a href="dragndrop_dragula.html"> Drag and Drop</a>
-                        </li>
-                        <li>
-                            <a href="widgets.html"> Widgets </a>
-                        </li>
-                        <li>
-                            <a href="map_jvector.html"> Vector Maps</a>
-                        </li>
-                        <li>
-                            <a href="charts_apex.html"> Charts </a>
-                        </li>
-                        <li>
-                            <a href="fonticons.html"> Font Icons </a>
-                        </li>
-                        <li class="sub-sub-submenu-list">
-                            <a href="#starter-kit" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                                Starter Kit <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round"
-                                    class="feather feather-chevron-right">
-                                    <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg> </a>
-                            <ul class="collapse list-unstyled sub-submenu eq-animated eq-fadeInUp" id="starter-kit"
-                                data-parent="#more">
-                                <li>
-                                    <a href="starter_kit_blank_page.html"> Blank Page </a>
-                                </li>
-                                <li>
-                                    <a href="starter_kit_breadcrumb.html"> Breadcrumb </a>
-                                </li>
-                                <li>
-                                    <a href="starter_kit_alt_menu.html"> Alternate Menu </a>
-                                </li>
-                                <li>
-                                    <a href="starter_kit_click_menu.html"> Click Menu </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li>
-                            <a target="_blank" href="../../documentation/index.html"> Documentation </a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
+  <aside class="sidebar custom-scrollbar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><div class="icon-inner"><Activity :size="18" stroke-width="2.5" /></div></div>
+      <div>
+        <div class="logo-text">SportField</div>
+        <div class="logo-sub">Admin Dashboard</div>
+      </div>
     </div>
-</template>
-<script>
-export default {
 
+    <div class="sidebar-section">
+      <div class="sidebar-label">Tổng quan</div>
+      <router-link to="/admin" class="nav-item" active-class="active">
+        <span class="nav-icon"><LayoutDashboard :size="16" /></span> Dashboard
+      </router-link>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Câu lạc bộ & Sân</div>
+      <router-link to="/admin/courts" class="nav-item" active-class="active">
+        <span class="nav-icon"><Home :size="16" /></span> Danh sách cơ sở
+      </router-link>
+      <router-link to="/admin/courts/pending" class="nav-item" active-class="active">
+        <span class="nav-icon"><Clock :size="16" /></span> Duyệt câu lạc bộ 
+        <span v-if="stats.pendingClubs > 0" class="nav-badge orange">{{ stats.pendingClubs }}</span>
+      </router-link>
+      <router-link to="/admin/courts/locked" class="nav-item" active-class="active">
+        <span class="nav-icon"><Lock :size="16" /></span> Cơ sở bị khóa
+      </router-link>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Quản lý tài khoản</div>
+      <router-link to="/admin/users" class="nav-item" active-class="active">
+        <span class="nav-icon"><Users :size="16" /></span> Người dùng
+      </router-link>
+      <router-link to="/admin/owners" class="nav-item" active-class="active">
+        <span class="nav-icon"><Building2 :size="16" /></span> Hồ sơ chủ Câu lạc bộ
+      </router-link>
+      <router-link to="/admin/owners/kyc" class="nav-item" active-class="active">
+        <span class="nav-icon"><ShieldCheck :size="16" /></span> Duyệt định danh (KYC)
+        <span v-if="stats.pendingKyc > 0" class="nav-badge orange">{{ stats.pendingKyc }}</span>
+      </router-link>
+      <router-link to="/admin/violations" class="nav-item" active-class="active">
+        <span class="nav-icon"><ShieldAlert :size="16" /></span> Vi phạm 
+        <span v-if="stats.violations > 0" class="nav-badge">{{ stats.violations }}</span>
+      </router-link>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Quản lý nội dung</div>
+      <router-link to="/admin/posts" class="nav-item" active-class="active">
+        <span class="nav-icon"><FileText :size="16" /></span> Bài đăng
+      </router-link>
+      <router-link to="/admin/news" class="nav-item" active-class="active">
+        <span class="nav-icon"><Newspaper :size="16" /></span> Bảng tin
+      </router-link>
+      <router-link to="/admin/community" class="nav-item" active-class="active">
+        <span class="nav-icon"><MessageSquare :size="16" /></span> Cộng đồng
+      </router-link>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Thống kê & Báo cáo</div>
+      <router-link to="/admin/stats" class="nav-item" active-class="active">
+        <span class="nav-icon"><BarChart3 :size="16" /></span> Thống kê hệ thống
+      </router-link>
+      <router-link to="/admin/reports" class="nav-item" active-class="active">
+        <span class="nav-icon"><FilePieChart :size="16" /></span> Báo cáo
+      </router-link>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Hệ thống</div>
+      <router-link to="/admin/permissions" class="nav-item" active-class="active">
+        <span class="nav-icon"><Key :size="16" /></span> Phân quyền
+      </router-link>
+      <router-link to="/admin/settings" class="nav-item" active-class="active">
+        <span class="nav-icon"><Settings :size="16" /></span> Cài đặt
+      </router-link>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-card" @click="handleLogout">
+        <div class="user-avatar"><User :size="16" stroke-width="2.5" /></div>
+        <div class="user-info">
+          <div class="user-name">Super Admin</div>
+          <div class="user-role">Quản trị viên hệ thống</div>
+        </div>
+        <LogOut :size="14" class="logout-icon" />
+      </div>
+    </div>
+  </aside>
+</template>
+
+<script>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { 
+  Activity, LayoutDashboard, Home, Clock, Lock, 
+  Users, Building2, ShieldAlert, FileText, Newspaper, 
+  MessageSquare, BarChart3, FilePieChart, Key, Settings,
+  User, LogOut, ShieldCheck
+} from 'lucide-vue-next';
+import { adminService } from '@/services/admin.service';
+
+export default {
+  name: 'AdminSidebar',
+  components: {
+    Activity, LayoutDashboard, Home, Clock, Lock, 
+    Users, Building2, ShieldAlert, FileText, Newspaper, 
+    MessageSquare, BarChart3, FilePieChart, Key, Settings,
+    User, LogOut, ShieldCheck
+  },
+  setup() {
+    const router = useRouter();
+    const stats = ref({
+      pendingClubs: 0,
+      pendingKyc: 0,
+      violations: 0
+    });
+
+    const fetchStats = async () => {
+      try {
+        const response = await adminService.getSummary();
+        const data = response.data.data;
+        stats.value = {
+          pendingClubs: data.pendingClubs || 0,
+          pendingKyc: data.pendingKyc || 0,
+          violations: data.violations || 0
+        };
+      } catch (error) {
+        console.error("Lỗi khi tải thông báo sidebar:", error);
+      }
+    };
+
+    const handleLogout = () => {
+      if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/auth/login');
+      }
+    };
+
+    onMounted(() => {
+      fetchStats();
+    });
+
+    return {
+      stats,
+      handleLogout
+    };
+  }
 }
 </script>
-<style></style>
+
+<style scoped>
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.sidebar-logo {
+  padding: 18px 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo-icon { 
+  width: 32px; 
+  height: 32px; 
+  background: var(--accent); 
+  border-radius: 8px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  color: #fff;
+}
+
+.logo-text { 
+  font-family: 'Barlow', sans-serif; 
+  font-weight: 700; 
+  font-size: 15px; 
+  color: var(--text-primary);
+}
+
+.logo-sub { 
+  font-size: 10px; 
+  color: var(--text-muted); 
+  font-weight: 400; 
+}
+
+.sidebar-section { padding: 16px 10px 8px; }
+.sidebar-label { 
+  font-size: 10px; 
+  font-weight: 600; 
+  text-transform: uppercase; 
+  letter-spacing: 0.08em; 
+  color: var(--text-muted); 
+  padding: 0 8px; 
+  margin-bottom: 4px; 
+}
+
+.nav-item {
+  display: flex; 
+  align-items: center; 
+  gap: 9px; 
+  padding: 7px 11px; 
+  border-radius: 6px; 
+  cursor: pointer;
+  font-size: 13px; 
+  color: var(--text-secondary); 
+  transition: all 0.15s; 
+  margin-bottom: 1px; 
+  position: relative;
+  text-decoration: none;
+}
+
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item:hover .nav-icon { opacity: 1; }
+.nav-item.active { background: var(--bg-active); color: var(--text-primary); }
+.nav-item.active .nav-icon { opacity: 1; color: var(--accent); }
+.nav-item.active::before { 
+  content: ''; 
+  position: absolute; 
+  left: 0; 
+  top: 50%; 
+  transform: translateY(-50%); 
+  width: 3px; 
+  height: 60%; 
+  background: var(--accent); 
+  border-radius: 0 2px 2px 0; 
+}
+
+.nav-badge { 
+  margin-left: auto; 
+  font-size: 10px; 
+  background: var(--red); 
+  color: #fff; 
+  padding: 1px 6px; 
+  border-radius: 10px; 
+  font-weight: 600; 
+}
+.nav-badge.orange { background: var(--orange); }
+
+.sidebar-bottom { margin-top: auto; padding: 12px 10px; border-top: 1px solid var(--border); }
+
+.user-card { 
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
+  padding: 8px; 
+  border-radius: 8px; 
+  cursor: pointer; 
+}
+.user-card:hover { background: var(--bg-hover); }
+
+.user-avatar { 
+  width: 32px; 
+  height: 32px; 
+  border-radius: 50%; 
+  background: linear-gradient(135deg, var(--accent), var(--purple)); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  color: #fff;
+}
+
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+.user-role { font-size: 11px; color: var(--text-muted); }
+
+.logout-icon {
+  color: var(--text-muted);
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+.user-card:hover .logout-icon {
+  color: var(--red);
+  opacity: 1;
+}
+</style>

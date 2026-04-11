@@ -37,13 +37,24 @@ async function main() {
   const hashedPassword = await bcrypt.hash("password123", SALT_ROUNDS);
 
   // Admin
-  const admin = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: "admin@sportplatform.com",
       fullName: "Hệ thống Admin",
       passwordHash: hashedPassword,
       role: "ADMIN",
       profile: { create: { bio: "Quản trị viên hệ thống" } },
+    },
+  });
+
+  const adminPassword = await bcrypt.hash("admin123", SALT_ROUNDS);
+  await prisma.user.create({
+    data: {
+      email: "admin@gmail.com",
+      fullName: "Admin Test",
+      passwordHash: adminPassword,
+      role: "ADMIN",
+      profile: { create: { bio: "Tài khoản hỗ trợ test" } },
     },
   });
 
@@ -103,13 +114,15 @@ async function main() {
       address: "15 Thanh Đa",
       city: "Hồ Chí Minh",
       district: "Bình Thạnh",
+      latitude: 10.8213,
+      longitude: 106.7157,
       logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=ThanhDa",
       coverImageUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200",
       approvalStatus: "APPROVED",
       amenities: {
         create: [
-          { amenityId: wifi.id, note: "Sóng mạnh" },
-          { amenityId: parking.id },
+          { amenityId: wifi.id, note: "Sóng mạnh", price: 0 },
+          { amenityId: parking.id, price: 10000 },
         ],
       },
       openingHours: {
@@ -130,13 +143,15 @@ async function main() {
       address: "100 Huỳnh Tấn Phát",
       city: "Hồ Chí Minh",
       district: "Quận 7",
+      latitude: 10.7365,
+      longitude: 106.7010,
       logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=Q7Pro",
       coverImageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=1200",
       approvalStatus: "APPROVED",
       amenities: {
         create: [
-          { amenityId: shower.id },
-          { amenityId: canteen.id },
+          { amenityId: shower.id, price: 5000 },
+          { amenityId: canteen.id, price: 0 },
         ],
       },
       openingHours: {
@@ -157,14 +172,16 @@ async function main() {
       address: "24 Xuân Thủy",
       city: "Hồ Chí Minh",
       district: "Quận 2",
+      latitude: 10.8042,
+      longitude: 106.7367,
       logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=ThaoDien",
       coverImageUrl: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=1200",
       approvalStatus: "APPROVED",
       amenities: {
         create: [
-          { amenityId: wifi.id },
-          { amenityId: parking.id },
-          { amenityId: shower.id },
+          { amenityId: wifi.id, price: 0 },
+          { amenityId: parking.id, price: 5000 },
+          { amenityId: shower.id, price: 10000 },
         ],
       },
       openingHours: {
@@ -185,13 +202,15 @@ async function main() {
       address: "50 Lê Lợi",
       city: "Hồ Chí Minh",
       district: "Quận 1",
+      latitude: 10.7745,
+      longitude: 106.7021,
       logoUrl: "https://api.dicebear.com/7.x/identicon/svg?seed=PBCenter",
       coverImageUrl: "https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=1200",
       approvalStatus: "APPROVED",
       amenities: {
         create: [
-          { amenityId: wifi.id },
-          { amenityId: canteen.id },
+          { amenityId: wifi.id, price: 0 },
+          { amenityId: canteen.id, price: 0 },
         ],
       },
       openingHours: {
@@ -206,7 +225,7 @@ async function main() {
 
   // 5. Create Courts & Pricing
   console.log("🏟 Creating courts and pricing...");
-  
+
   // Football Courts
   const court1 = await prisma.court.create({
     data: {
@@ -342,7 +361,7 @@ async function main() {
   }
 
   const allCourtIds = [court1.id, courtF2.id, court2.id, courtB2.id, courtT1.id, courtP1.id, courtBB1.id];
-  
+
   for (const id of allCourtIds) {
     await createSlots(id, today);
     await createSlots(id, tomorrow);
@@ -388,7 +407,7 @@ async function main() {
     await prisma.booking.create({
       data: {
         userId: user1.id,
-        courtId: court1.id,
+        clubId: club1.id,
         status: "CONFIRMED",
         totalAmount: 200000,
         finalAmount: 200000,
@@ -399,14 +418,14 @@ async function main() {
         }
       }
     });
-    await prisma.timeSlot.update({ where: { id: court1Slots[2].id }, data: { status: "BOOKED" }});
+    await prisma.timeSlot.update({ where: { id: court1Slots[2].id }, data: { status: "BOOKED" } });
   }
 
   if (court1Slots.length > 4) {
     await prisma.booking.create({
       data: {
         userId: user2.id,
-        courtId: court1.id,
+        clubId: club1.id,
         status: "PENDING",
         totalAmount: 200000,
         finalAmount: 200000,
@@ -417,14 +436,14 @@ async function main() {
         }
       }
     });
-    await prisma.timeSlot.update({ where: { id: court1Slots[4].id }, data: { status: "LOCKED" }});
+    await prisma.timeSlot.update({ where: { id: court1Slots[4].id }, data: { status: "LOCKED" } });
   }
 
   if (courtF2Slots.length > 12) {
     await prisma.booking.create({
       data: {
         userId: user1.id,
-        courtId: courtF2.id,
+        clubId: club1.id,
         status: "COMPLETED",
         totalAmount: 800000,
         finalAmount: 800000,
@@ -435,7 +454,7 @@ async function main() {
         }
       }
     });
-    await prisma.timeSlot.update({ where: { id: courtF2Slots[12].id }, data: { status: "BOOKED" }});
+    await prisma.timeSlot.update({ where: { id: courtF2Slots[12].id }, data: { status: "BOOKED" } });
   }
 
   // Mock for court 2 (Badminton)
@@ -448,7 +467,7 @@ async function main() {
     await prisma.booking.create({
       data: {
         userId: user2.id,
-        courtId: court2.id,
+        clubId: club2.id,
         status: "CONFIRMED",
         totalAmount: 90000,
         finalAmount: 90000,
@@ -459,7 +478,7 @@ async function main() {
         }
       }
     });
-    await prisma.timeSlot.update({ where: { id: court2Slots[13].id }, data: { status: "BOOKED" }});
+    await prisma.timeSlot.update({ where: { id: court2Slots[13].id }, data: { status: "BOOKED" } });
   }
 
   console.log("✅ Seed completed successfully!");

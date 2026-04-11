@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { loginWithFacebook } from "@/services/auth.service";
+import { loginWithFacebook } from "@/modules/user/auth.service";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 
 // POST /api/auth/facebook

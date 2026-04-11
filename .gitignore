@@ -1,0 +1,12 @@
+# Root Gitignore
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+coverage/
+*.log
+.DS_Store
+package-lock.json (if accidental)
+# Do NOT ignore package.json if it is needed for the root, 
+# but here it seems accidental. I will leave it for now.

@@ -7,6 +7,7 @@ export type JwtPayload = {
   userId: string;
   email: string;
   role: string;
+  sid?: string; // Session ID (optional for now, but will use in login)
 };
 
 /**

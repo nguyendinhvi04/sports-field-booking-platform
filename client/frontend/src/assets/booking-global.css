@@ -1,0 +1,75 @@
+/* Booking map marker */
+.bk-marker { cursor: pointer; }
+.bk-pin {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #1a56db, #2563eb);
+  color: #fff;
+  border-radius: 20px 20px 20px 4px;
+  padding: 5px 10px 5px 7px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+.bk-pin:hover {
+  transform: scale(1.08);
+  box-shadow: 0 5px 18px rgba(37, 99, 235, 0.55);
+}
+.bk-pin-emoji { font-size: 14px; line-height: 1; }
+.bk-pin-label { font-size: 11px; font-weight: 600; max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
+.bk-shadow {
+  width: 24px; height: 6px;
+  background: rgba(0,0,0,0.12);
+  border-radius: 50%;
+  margin: 1px auto 0;
+}
+
+/* Booking map popup */
+.bk-popup .mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.16) !important;
+}
+.bk-popup-inner {
+  display: flex;
+  flex-direction: column;
+  width: 230px;
+}
+.bk-popup-img {
+  width: 100%; height: 100px;
+  object-fit: cover;
+  display: block;
+}
+.bk-popup-body {
+  padding: 10px 12px 12px;
+}
+.bk-popup-name {
+  font-size: 0.83rem; font-weight: 700;
+  color: #111827; margin: 0 0 3px;
+  line-height: 1.3;
+}
+.bk-popup-addr {
+  font-size: 0.72rem; color: #6b7280;
+  margin: 0 0 8px;
+}
+.bk-popup-foot {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 8px;
+}
+.bk-popup-price {
+  font-size: 0.72rem; color: #374151; font-weight: 700;
+}
+.bk-popup-btn {
+  background: linear-gradient(135deg, #1a56db, #2563eb);
+  color: #fff; font-size: 0.7rem; font-weight: 700;
+  padding: 5px 11px; border-radius: 6px;
+  text-decoration: none; cursor: pointer;
+  transition: opacity 0.2s;
+}
+.bk-popup-btn:hover { opacity: 0.85; }

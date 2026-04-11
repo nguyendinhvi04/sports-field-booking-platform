@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getClubById, updateClub } from "@/services/club.service";
+import { getClubById, updateClub, deleteClub } from "@/modules/club/club.service";
 import { getAuthUser, requireRole } from "@/middlewares/auth.middleware";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 import { updateClubSchema } from "@/validations/club.schema";
@@ -58,6 +58,32 @@ export async function PATCH(
 
         const club = await updateClub(clubId, user.userId, parsed.data);
         return successResponse("Cập nhật câu lạc bộ thành công", club);
+    } catch (error: unknown) {
+        if (error instanceof Error && error.message === "CLUB_NOT_FOUND_OR_UNAUTHORIZED") {
+            return errorResponse("Không tìm thấy câu lạc bộ hoặc bạn không có quyền truy cập", 403);
+        }
+        return serverErrorResponse(error);
+    }
+}
+
+/**
+ * DELETE /api/owner/clubs/[clubId]
+ * Xoá mềm câu lạc bộ (soft delete)
+ */
+export async function DELETE(
+    req: NextRequest,
+    { params }: { params: Promise<{ clubId: string }> }
+) {
+    try {
+        const { clubId } = await params;
+        const { user, error } = await getAuthUser(req);
+        if (error) return error;
+
+        const roleErr = requireRole(user, ["OWNER", "ADMIN"]);
+        if (roleErr) return roleErr;
+
+        await deleteClub(clubId, user.userId);
+        return successResponse("Xoá câu lạc bộ thành công", null);
     } catch (error: unknown) {
         if (error instanceof Error && error.message === "CLUB_NOT_FOUND_OR_UNAUTHORIZED") {
             return errorResponse("Không tìm thấy câu lạc bộ hoặc bạn không có quyền truy cập", 403);

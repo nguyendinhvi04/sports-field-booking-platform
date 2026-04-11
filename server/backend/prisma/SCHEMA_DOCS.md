@@ -25,9 +25,12 @@
    - [Notifications](#notifications)
    - [News Feed / Posts](#news-feed--posts)
    - [Owner CRM](#owner-crm)
+   - [Audit & History](#audit--history)
+   - [System Configuration](#system-configuration)
 5. [Key Relationships](#key-relationships)
 6. [Business Logic Notes](#business-logic-notes)
 7. [Common Query Examples](#common-query-examples)
+31. [Soft Delete Pattern](#soft-delete-pattern)
 
 ---
 
@@ -68,6 +71,9 @@ Club ──→ ClubImage
      ──→ Post
      ──→ Voucher ──→ VoucherUsage
      └──→ ClubCustomer (CRM)
+
+AuditLog ──→ User (Audit trail)
+Booking ──→ BookingStatusHistory (Lifecycle tracking)
 ```
 
 ---
@@ -266,7 +272,12 @@ The central identity model for all platform participants.
 | `isEmailVerified` | Boolean    | Email confirmation status                              |
 | `googleId`        | String?    | Unique Google OAuth identifier                         |
 | `facebookId`      | String?    | Unique Facebook OAuth identifier                       |
-| `lastLoginAt`     | DateTime?  | Track activity                                         |
+| `lastLoginAt`     | DateTime?  | Timestamp of last activity                             |
+| `lastLoginIp`     | String?    | IP address of last login                               |
+| `deletedAt`       | DateTime?  | **Soft Delete:** Timestamp of record deletion          |
+| `failedLoginAttempts`| Int     | Counter for consecutive failed logins                  |
+| `lockoutUntil`    | DateTime?  | Account lockout expiration time                        |
+| `lastPasswordChangeAt`| DateTime?| Timestamp of last password modification               |
 
 **Relations:**
 - `profile` → `UserProfile` (1:1)
@@ -303,6 +314,7 @@ Manages active login sessions (for jwt/token-based auth or session invalidation)
 | `ipAddress` | String?  | For security auditing                    |
 | `userAgent` | String?  | Browser/device info                      |
 | `expiresAt` | DateTime | Session TTL                              |
+| `isRevoked` | Boolean  | If `true`, the session is invalidated    |
 
 > Used to support multi-device sessions and explicit logout/revocation.
 
@@ -333,8 +345,13 @@ A sports facility with multiple courts and managed by an `OWNER`.
 | `city`          | String         | City for geo-search                           |
 | `latitude`      | Float?         | For map display                               |
 | `longitude`     | Float?         | For map display                               |
-| `approvalStatus`| ApprovalStatus | Default `PENDING`, admin must approve         |
 | `isActive`      | Boolean        | Owner can toggle visibility                   |
+| `deletedAt`     | DateTime?      | **Soft Delete:** Timestamp of record deletion          |
+
+**Indexes:**
+- `name` (GIN): Full-text search for club names.
+- `address` (GIN): Full-text search for location names.
+- `slug` (Unique): URL-friendly access.
 
 **Relations:**
 - `owner` → `User`
@@ -408,6 +425,7 @@ An individual bookable court within a club.
 | `surface`       | String?     | e.g., `"Cỏ nhân tạo"`, `"Sàn gỗ"`           |
 | `indoorOutdoor` | String?     | `"INDOOR"` or `"OUTDOOR"`                     |
 | `sortOrder`     | Int         | Controls display order within the club        |
+| `deletedAt`     | DateTime?   | **Soft Delete:** Timestamp of record deletion          |
 
 ---
 
@@ -461,6 +479,7 @@ A booking record grouping one or more time slots.
 | `bookerName`    | String        | Captured at booking time (in case user info changes)  |
 | `bookerPhone`   | String        | Contact phone, captured at booking time               |
 | `bookerEmail`   | String?       | Optional contact email                                |
+| `deletedAt`     | DateTime?     | **Soft Delete:** Timestamp of record deletion          |
 
 ---
 
@@ -527,6 +546,7 @@ A user review submitted after a completed booking.
 | `clubId`    | String? | Denormalized for easy club-level queries        |
 | `rating`    | Int     | 1–5 star rating                                 |
 | `isVisible` | Boolean | Owner/admin can hide inappropriate reviews      |
+| `deletedAt` | DateTime?| **Soft Delete:** Timestamp of record deletion          |
 
 #### `ReviewImage`
 Photos attached to a review.
@@ -555,6 +575,7 @@ Discount codes usable during checkout.
 | `usedCount`     | Int         | Running counter of total uses                      |
 | `startDate`     | DateTime    | Voucher validity start                             |
 | `endDate`       | DateTime    | Voucher validity end                               |
+| `deletedAt`     | DateTime?   | **Soft Delete:** Timestamp of record deletion          |
 
 #### `VoucherUsage`
 Tracks which users have used which vouchers.
@@ -603,6 +624,7 @@ Content published by a club owner to engage users.
 | `linkedDate`    | DateTime?  | Relevant date for the post (e.g., slot date)       |
 | `expiresAt`     | DateTime?  | Auto-expire the post after this time               |
 | `viewCount`     | Int        | Impression counter                                 |
+| `deletedAt`     | DateTime?  | **Soft Delete:** Timestamp of record deletion          |
 
 ---
 
@@ -624,6 +646,46 @@ CRM record for each user who has booked at a specific club.
 **Constraint:** `@@unique([clubId, userId])` — one CRM record per user per club.
 
 > These fields should be updated via triggers or service-layer logic whenever a booking is confirmed/cancelled/completed.
+
+```
+
+---
+
+### Audit & History
+
+#### `AuditLog`
+A central audit trail for critical system actions.
+
+| Field       | Type    | Notes                                              |
+|-------------|---------|----------------------------------------------------|
+| `userId`    | String? | Actor who performed the action (null if SYSTEM)    |
+| `action`    | String  | e.g., `CREATE`, `UPDATE`, `DELETE`, `LOGIN`        |
+| `entity`    | String  | Model name affected (e.g., `"Booking"`, `"Club"`)  |
+| `entityId`  | String? | ID of the affected record                          |
+| `details`   | Json?   | Diff of changes or extra context                   |
+| `ipAddress` | String? | Originating IP address                             |
+| `userAgent` | String? | Browser/Device information                         |
+
+#### `BookingStatusHistory`
+Detailed lifecycle log for individual bookings.
+
+| Field       | Type          | Notes                                              |
+|-------------|---------------|----------------------------------------------------|
+| `bookingId` | String        | FK → Booking                                       |
+| `status`    | BookingStatus | Status transitioned TO                             |
+| `note`      | String?       | Explanation (e.g., "Payment proof uploaded")       |
+| `changedBy` | String?       | userId of person who triggered the change          |
+
+---
+
+#### `SystemConfig`
+Dynamic platform-wide settings stored in DB to avoid hardcoding.
+
+| Field       | Type    | Notes                                              |
+|-------------|---------|----------------------------------------------------|
+| `key`       | String  | Unique identifier (e.g., `"COMMISSION_RATE"`)      |
+| `value`     | String  | Setting value (serialized as string)               |
+| `description`| String?| Purpose of this configuration                      |
 
 ---
 
@@ -787,6 +849,30 @@ await prisma.timeSlot.updateMany({
   },
 });
 ```
+
+---
+
+```
+
+---
+
+## Soft Delete Pattern
+
+The platform implements a **Soft Delete** pattern for critical models to ensure data integrity and auditability. Instead of permanently removing records from the database, the system populates the `deletedAt` field with the current timestamp.
+
+### Affected Models
+- `User`
+- `Club`
+- `Court`
+- `Booking`
+- `Review`
+- `Voucher`
+- `Post`
+
+### Implementation Notes
+- **Querying:** When retrieving data, always filter for active records where `deletedAt` is `null`.
+- **Restoration:** A record can be restored by setting `deletedAt` back to `null`.
+- **Integrity:** Soft-deleted records still exist in the database, allowing historical bookings or reviews to maintain their foreign key relationships correctly.
 
 ---
 

@@ -63,7 +63,7 @@
               Đối tác
             </span>
             <span v-if="venue.isNew" class="badge badge--new">MỚI</span>
-            <span v-if="venue.isHot" class="badge badge--hot">🔥 HOT</span>
+            <span v-if="venue.isHot" class="badge badge--hot">HOT</span>
           </div>
 
           <!-- Image slider controls -->
@@ -89,7 +89,7 @@
         <div class="info-top">
           <div class="name-row">
             <h2 class="venue-name" itemprop="name">
-              <span v-if="venue.hasOnlineBooking" class="bolt-icon" title="Đặt sân trực tuyến" aria-label="Đặt sân trực tuyến">⚡</span>
+              <!-- <span v-if="venue.hasOnlineBooking" class="bolt-icon" title="Đặt sân trực tuyến" aria-label="Đặt sân trực tuyến">⚡</span> -->
               <router-link :to="`/venue/${venue.slug || venue.id}`" class="name-link">
                 {{ venue.name }}
               </router-link>
@@ -99,7 +99,7 @@
               <div class="stars" aria-hidden="true">
                 <span v-for="i in 5" :key="i" class="star" :class="{ filled: i <= Math.round(venue.rating), half: i === Math.ceil(venue.rating) && !Number.isInteger(venue.rating) }">★</span>
               </div>
-              <span class="rating-val">{{ venue.rating }}</span>
+              <!-- <span class="rating-val">{{ venue.rating }}</span> -->
               <span class="review-count">({{ venue.reviewCount }} đánh giá)</span>
             </div>
           </div>
@@ -114,7 +114,7 @@
           <!-- Sport + surface chips -->
           <div class="chip-row" role="list" aria-label="Thông tin sân">
             <span v-if="venue.sportType" class="chip chip--sport" role="listitem" itemprop="sport">
-              {{ sportLabels[venue.sportType] || venue.sportType }}
+              {{ translateSportType(venue.sportType) }}
             </span>
             <span v-if="venue.format" class="chip" role="listitem">
               <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
@@ -145,6 +145,8 @@
           <li v-for="amenity in displayAmenities" :key="amenity.key" class="amenity" :title="amenity.label">
             <svg viewBox="0 0 24 24" v-html="amenity.icon" aria-hidden="true" />
             <span>{{ amenity.label }}</span>
+            <span v-if="amenity.price > 0" class="amenity-price">{{ formatPrice(amenity.price) }}</span>
+            <span v-else-if="amenity.price === 0" class="amenity-free">Miễn phí</span>
           </li>
         </ul>
       </div>
@@ -184,12 +186,6 @@
           </svg>
           {{ isFavorited ? 'Đã lưu' : 'Lưu' }}
         </button>
-
-        <!-- Partner note -->
-        <p v-if="venue.isPartner" class="partner-note">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          Đối tác chính thức PlayFinder
-        </p>
       </div>
 
     </div>
@@ -236,17 +232,24 @@ export default {
       const result = [];
       if (Array.isArray(this.venue.amenities) && this.venue.amenities.length) {
         return this.venue.amenities
-          .filter(a => AMENITY_ICONS[a.key || a])
           .map(a => {
-            const key = a.key || a;
-            return { key, ...AMENITY_ICONS[key] };
+            // New behavior: a is an object { key, name, price }
+            // Old behavior: a is a string (name)
+            const key = (typeof a === 'string') ? a.toLowerCase().replace(/\s+/g, '_') : a.key;
+            const price = (typeof a === 'object') ? a.price : 0;
+            const label = (typeof a === 'object') ? a.name : a;
+
+            if (AMENITY_ICONS[key]) {
+              return { key, ...AMENITY_ICONS[key], price, label };
+            }
+            return { key, label, icon: AMENITY_ICONS.wifi.icon, price }; // Default icon if not found
           })
           .slice(0, 4);
       }
       // Fallback: boolean fields
-      if (this.venue.changingRoom) result.push({ key: "changing_room", ...AMENITY_ICONS.changing_room });
-      if (this.venue.freeParking)  result.push({ key: "free_parking",  ...AMENITY_ICONS.free_parking });
-      if (this.venue.wifi)         result.push({ key: "wifi",          ...AMENITY_ICONS.wifi });
+      if (this.venue.changingRoom) result.push({ key: "changing_room", ...AMENITY_ICONS.changing_room, price: 0 });
+      if (this.venue.freeParking)  result.push({ key: "free_parking",  ...AMENITY_ICONS.free_parking,  price: 0 });
+      if (this.venue.wifi)         result.push({ key: "wifi",          ...AMENITY_ICONS.wifi,          price: 0 });
       return result.slice(0, 4);
     },
   },
@@ -257,6 +260,12 @@ export default {
       return new Intl.NumberFormat("vi-VN", {
         style: "currency", currency: "VND", maximumFractionDigits: 0,
       }).format(price);
+    },
+
+    translateSportType(type) {
+      if (!type) return "";
+      const upper = type.toUpperCase();
+      return this.sportLabels[upper] || type;
     },
 
     toggleFavorite() {
@@ -273,9 +282,9 @@ export default {
 <style scoped>
 /* ── Variables ── */
 .venue-card {
-  --green:       #3dd56d;
-  --green-dark:  #28b857;
-  --green-light: rgba(61,213,109,.12);
+  --green:       rgb(22, 163, 74);
+  --green-dark:  rgb(15, 118, 54);
+  --green-light: rgba(22, 163, 74, 0.1);
   --text:        #111827;
   --muted:       #6b7280;
   --border:      #e5e7eb;
@@ -304,24 +313,34 @@ export default {
   box-shadow: var(--shadow);
   overflow: hidden;
   transition: box-shadow .25s ease, border-color .25s ease, transform .25s ease;
+  min-width: 0;
 }
 
 .card-body:hover {
-  box-shadow: 0 4px 24px rgba(0,0,0,.1), 0 0 0 2px var(--green);
-  border-color: var(--green);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1), 0 0 0 2px rgb(22, 163, 74);
+  border-color: rgb(22, 163, 74);
   transform: translateY(-2px);
 }
 
 /* ─ Image column ─ */
-.image-col { flex-shrink: 0; width: 220px; }
+.image-col { 
+  flex-shrink: 0; 
+  width: 250px; 
+  display: flex;
+  flex-direction: column;
+  background-color: #f8fafc;
+}
 
 .image-wrap {
-  position: relative; width: 100%; height: 100%;
-  min-height: 160px; overflow: hidden;
+  flex: 1;
+  position: relative; 
+  overflow: hidden;
 }
 
 .venue-img {
-  width: 100%; height: 100%; object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
   transition: transform .4s ease;
 }
@@ -383,9 +402,10 @@ export default {
 
 /* ─ Info column ─ */
 .info-col {
-  flex: 1; padding: 18px 20px;
-  display: flex; flex-direction: column; gap: 10px;
+  flex: 1; padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 12px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .info-top { display: flex; flex-direction: column; gap: 7px; }
@@ -397,7 +417,7 @@ export default {
 
 .venue-name {
   font-family: "Barlow Condensed", sans-serif;
-  font-size: 1.15rem; font-weight: 800;
+  font-size: 1.25rem; font-weight: 800;
   letter-spacing: 0.01em; margin: 0; line-height: 1.2;
 }
 
@@ -418,7 +438,8 @@ export default {
 .venue-address {
   display: flex; align-items: center; gap: 5px;
   font-style: normal; color: var(--muted);
-  font-size: 12.5px; line-height: 1.4;
+  font-size: 13px; line-height: 1.4;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
 .venue-address svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
 .distance-chip {
@@ -470,12 +491,14 @@ export default {
   font-size: 11.5px; color: var(--muted);
 }
 .amenity svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
+.amenity-price { font-size: 10px; font-weight: 700; color: #15803d; background: #f0fdf4; padding: 1px 4px; border-radius: 4px; margin-left: 2px; }
+.amenity-free { font-size: 10px; font-weight: 600; color: #6b7280; font-style: italic; margin-left: 2px; }
 
 /* ─ CTA column ─ */
 .cta-col {
-  flex-shrink: 0; width: 160px; padding: 18px 16px;
+  flex-shrink: 0; width: 180px; padding: 20px 18px;
   display: flex; flex-direction: column;
-  gap: 10px; align-items: stretch;
+  gap: 12px; align-items: stretch;
   border-left: 1.5px solid var(--border);
   background: #fafafa;
 }

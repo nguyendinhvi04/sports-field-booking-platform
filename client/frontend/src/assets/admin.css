@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg-primary: #0d0f14;
+  --bg-secondary: #13161e;
+  --bg-tertiary: #1a1e28;
+  --bg-hover: #1f2433;
+  --bg-active: #232840;
+  --border: #252a38;
+  --border-light: #2e3448;
+  --text-primary: #e8eaf0;
+  --text-secondary: #8891aa;
+  --text-muted: #555d75;
+  --accent: #4f6ef7;
+  --accent-hover: #6b85ff;
+  --accent-soft: rgba(79,110,247,0.12);
+  --green: #22c55e;
+  --green-soft: rgba(34,197,94,0.12);
+  --red: #ef4444;
+  --red-soft: rgba(239,68,68,0.12);
+  --orange: #f97316;
+  --orange-soft: rgba(249,115,22,0.12);
+  --yellow: #eab308;
+  --yellow-soft: rgba(234,179,8,0.12);
+  --purple: #a855f7;
+  --purple-soft: rgba(168,85,247,0.12);
+  --cyan: #06b6d4;
+  --sidebar-w: 248px;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Barlow', sans-serif;
+}
+
+.admin-body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+/* Scrollbar Utility */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--border-light);
+}

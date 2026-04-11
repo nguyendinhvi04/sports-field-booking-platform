@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { updateBookingStatus } from "@/services/booking.service";
+import { updateBookingStatus } from "@/modules/booking/booking.service";
 import { getAuthUser, requireRole } from "@/middlewares/auth.middleware";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 

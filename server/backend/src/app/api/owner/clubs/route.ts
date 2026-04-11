@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getClubsByOwner, createClub } from "@/services/club.service";
+import { getClubsByOwner, createClub } from "@/modules/club/club.service";
 import { getAuthUser, requireRole } from "@/middlewares/auth.middleware";
 import { successResponse, errorResponse, serverErrorResponse } from "@/lib/response";
 import { clubSchema } from "@/validations/club.schema";
@@ -17,10 +17,12 @@ export async function GET(req: NextRequest) {
     if (roleErr) return roleErr;
 
     const clubs = await getClubsByOwner(user.userId);
-    return successResponse("Lấy danh sách câu lạc bộ thành công", clubs);
+    return successResponse("Lấy danh sách câu lạc bộ thành công", clubs); // success
   } catch (error: unknown) {
     return serverErrorResponse(error);
   }
+   
+  
 }
 
 /**
@@ -37,11 +39,11 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const parsed = clubSchema.safeParse(body);
-    
+
     if (!parsed.success) {
       return errorResponse(
-        "Dữ liệu không hợp lệ", 
-        422, 
+        "Dữ liệu không hợp lệ",
+        422,
         parsed.error.flatten().fieldErrors as Record<string, string[]>
       );
     }
